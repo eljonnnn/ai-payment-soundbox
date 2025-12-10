@@ -9,6 +9,7 @@ This document tracks all prompts used during the development of the Payment Soun
 **Date:** December 10, 2025
 
 **Prompt:**
+
 ```
 Role: Act as a Senior Full Stack Architect specializing in Next.js 15, Prisma, and Fintech applications.
 
@@ -72,6 +73,7 @@ Constraint: Do not write the full application code yet. Provide the architectura
 **Date:** December 10, 2025
 
 **Prompt:**
+
 ```
 implement RLS policies on Supabase
 single COMPLETED status for MVP simplicity.
@@ -79,6 +81,7 @@ Prisma seed script with 2-3 test merchants for immediate testing.
 ```
 
 **Outcome:** Plan updated with:
+
 - RLS policies defined in SQL
 - Single COMPLETED status for transactions
 - Seed script with 3 Filipino-themed merchant names
@@ -90,10 +93,11 @@ Prisma seed script with 2-3 test merchants for immediate testing.
 **Date:** December 10, 2025
 
 **Prompt:**
+
 ```
 npx create-next-app@latest ai-payment-soundbox --typescript --tailwind --app --no-src-dir
 
-replace this with 
+replace this with
 
 npx create-next-app@latest . --typescript --tailwind --app --no-src-dir
 ```
@@ -107,11 +111,13 @@ npx create-next-app@latest . --typescript --tailwind --app --no-src-dir
 **Date:** December 10, 2025
 
 **Prompt:**
+
 ```
 Follow instructions in plan-paymentSoundbox.prompt.md.
 ```
 
 **Outcome:** Complete MVP implementation including:
+
 - Next.js 15 project initialization with TypeScript, Tailwind CSS, and App Router
 - Prisma installation and configuration with PostgreSQL datasource
 - Database schema with Merchant and Transaction models
@@ -134,6 +140,7 @@ Follow instructions in plan-paymentSoundbox.prompt.md.
 **Date:** December 10, 2025
 
 **Prompt:**
+
 ```
 always update the prompts.md
 ```
