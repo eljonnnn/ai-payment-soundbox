@@ -59,14 +59,14 @@ export default function MerchantSoundbox() {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       console.log("Voices loaded:", voices.length);
-      
+
       if (voices.length > 0 && isSubscribed) {
         setAvailableVoices(voices);
-        
+
         // Only set default voice if not already set
         setSelectedVoice((currentVoice) => {
           if (currentVoice) return currentVoice;
-          
+
           // Set default to Google US English voice, or fallback to first English voice
           const defaultVoice =
             voices.find((v) => v.name === "Google US English") ||
@@ -86,8 +86,11 @@ export default function MerchantSoundbox() {
       console.log("Voices changed event fired");
       loadVoices();
     };
-    
-    window.speechSynthesis.addEventListener("voiceschanged", handleVoicesChanged);
+
+    window.speechSynthesis.addEventListener(
+      "voiceschanged",
+      handleVoicesChanged
+    );
 
     // Aggressive fallback: retry multiple times
     const timer1 = setTimeout(loadVoices, 100);
@@ -99,7 +102,10 @@ export default function MerchantSoundbox() {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
-      window.speechSynthesis.removeEventListener("voiceschanged", handleVoicesChanged);
+      window.speechSynthesis.removeEventListener(
+        "voiceschanged",
+        handleVoicesChanged
+      );
     };
   }, []); // Run only once on mount
 
