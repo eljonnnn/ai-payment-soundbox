@@ -61,8 +61,8 @@ export default function MerchantSwitcher({
           <Store className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 text-left">
-          <div className="text-xs text-gray-500 font-medium">Merchant</div>
-          <div className="text-sm font-semibold text-gray-900 truncate">
+          <div className="text-xs text-blue-600 font-medium">Merchant</div>
+          <div className="text-sm font-semibold text-blue-900 truncate">
             {currentMerchant?.name || "Select merchant"}
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function MerchantSwitcher({
                         className={`text-sm font-semibold ${
                           merchant.id === currentMerchantId
                             ? "text-blue-700"
-                            : "text-gray-900"
+                            : "text-blue-900"
                         }`}
                       >
                         {merchant.name}

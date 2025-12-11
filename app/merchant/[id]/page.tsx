@@ -250,10 +250,10 @@ export default function MerchantSoundbox() {
                   <span className="text-white font-bold text-2xl">G</span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-2xl font-bold text-blue-900">
                     GCash Merchant Soundbox
                   </h1>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-blue-600">
                     Real-time payment notifications
                   </p>
                 </div>
@@ -292,10 +292,10 @@ export default function MerchantSoundbox() {
                 <div className="w-24 h-24 bg-linear-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                   <Volume2 className="w-12 h-12 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                <h2 className="text-3xl font-bold text-blue-900 mb-3">
                   Start Listening for Payments
                 </h2>
-                <p className="text-gray-600 mb-8 text-lg">
+                <p className="text-gray-700 mb-8 text-lg">
                   Activate the soundbox to receive real-time audio notifications
                   when customers complete payments.
                 </p>
@@ -353,10 +353,10 @@ export default function MerchantSoundbox() {
                 {/* Left: Transactions (2/3 width) */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">
+                    <h2 className="text-xl font-bold text-blue-900">
                       Recent Transactions
                     </h2>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-blue-600">
                       {transactions.length} total
                     </div>
                   </div>

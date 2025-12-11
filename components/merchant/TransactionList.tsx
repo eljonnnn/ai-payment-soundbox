@@ -18,10 +18,10 @@ const EmptyState = () => (
     <div className="w-20 h-20 bg-linear-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
       <Package className="w-10 h-10 text-gray-400" />
     </div>
-    <h3 className="text-lg font-semibold text-gray-600 mb-2">
+    <h3 className="text-lg font-semibold text-blue-800 mb-2">
       No transactions yet
     </h3>
-    <p className="text-sm text-gray-500">Waiting for customer payments...</p>
+    <p className="text-sm text-blue-600">Waiting for customer payments...</p>
   </motion.div>
 );
 
@@ -56,7 +56,7 @@ const TransactionItem = ({
             <Receipt className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1">
-            <div className="text-base font-semibold text-gray-900">
+            <div className="text-base font-semibold text-blue-900">
               {transaction.customerName}
             </div>
             <div className="text-xs text-gray-500 mt-0.5">
@@ -73,7 +73,7 @@ const TransactionItem = ({
         <div className="text-right">
           <div
             className={`text-2xl font-bold ${
-              isLargeAmount ? "text-green-600" : "text-gray-900"
+              isLargeAmount ? "text-green-600" : "text-blue-900"
             }`}
           >
             {formatCurrency(amount)}
@@ -129,9 +129,9 @@ export default function TransactionList({
         {dates.map((date) => (
           <div key={date}>
             <div className="flex items-center gap-3 mb-3">
-              <div className="text-sm font-semibold text-gray-700">{date}</div>
+              <div className="text-sm font-semibold text-blue-800">{date}</div>
               <div className="flex-1 h-px bg-gray-200"></div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-blue-600">
                 {groupedTransactions[date].length} transaction
                 {groupedTransactions[date].length > 1 ? "s" : ""}
               </div>

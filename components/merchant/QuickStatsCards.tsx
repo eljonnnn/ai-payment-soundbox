@@ -33,8 +33,8 @@ const StatCard = ({
   >
     <div className="flex items-start justify-between">
       <div className="flex-1">
-        <div className="text-sm text-gray-500 font-medium mb-2">{label}</div>
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
+        <div className="text-sm text-blue-600 font-medium mb-2">{label}</div>
+        <div className="text-2xl font-bold text-blue-900">{value}</div>
       </div>
       <div className={`${color} p-3 rounded-lg`}>
         <Icon className="w-6 h-6 text-white" />
