@@ -1,57 +1,108 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { 
-  ArrowUpRight, 
-  Smartphone, 
-  Building2, 
-  FileText, 
-  PiggyBank, 
-  CreditCard, 
-  Gift, 
+import {
+  ArrowUpRight,
+  Smartphone,
+  Building2,
+  FileText,
+  PiggyBank,
+  CreditCard,
+  Gift,
   Bus,
   Building,
   Shield,
   UtensilsCrossed,
   Plane,
-  Leaf
+  Leaf,
 } from "lucide-react";
 import UserSwitcher from "@/components/wallet/UserSwitcher";
 import BottomNavigation from "@/components/wallet/BottomNavigation";
 import { getStoredUser, type WalletUser } from "@/lib/wallet-users";
 
 const ACTION_BUTTONS = [
-  { id: "send", label: "Send", icon: ArrowUpRight, href: "/wallet/send", color: "text-blue-600" },
-  { id: "load", label: "Load", icon: Smartphone, href: "/wallet/load", color: "text-blue-600" },
-  { id: "transfer", label: "Transfer", icon: Building2, href: "/wallet/transfer", color: "text-blue-600" },
-  { id: "bills", label: "Bills", icon: FileText, href: "/wallet/bills", color: "text-blue-600" },
-  { id: "gsave", label: "GSave", icon: PiggyBank, href: "/wallet/gsave", color: "text-blue-600" },
-  { id: "cards", label: "Cards", icon: CreditCard, href: "/wallet/cards", color: "text-blue-600" },
-  { id: "rewards", label: "A+ Rewards", icon: Gift, href: "/wallet/rewards", color: "text-blue-600" },
-  { id: "commute", label: "Commute", icon: Bus, href: "/wallet/commute", color: "text-red-500" },
+  {
+    id: "send",
+    label: "Send",
+    icon: ArrowUpRight,
+    href: "/wallet/send",
+    color: "text-blue-600",
+  },
+  {
+    id: "load",
+    label: "Load",
+    icon: Smartphone,
+    href: "/wallet/load",
+    color: "text-blue-600",
+  },
+  {
+    id: "transfer",
+    label: "Transfer",
+    icon: Building2,
+    href: "/wallet/transfer",
+    color: "text-blue-600",
+  },
+  {
+    id: "bills",
+    label: "Bills",
+    icon: FileText,
+    href: "/wallet/bills",
+    color: "text-blue-600",
+  },
+  {
+    id: "gsave",
+    label: "GSave",
+    icon: PiggyBank,
+    href: "/wallet/gsave",
+    color: "text-blue-600",
+  },
+  {
+    id: "cards",
+    label: "Cards",
+    icon: CreditCard,
+    href: "/wallet/cards",
+    color: "text-blue-600",
+  },
+  {
+    id: "rewards",
+    label: "A+ Rewards",
+    icon: Gift,
+    href: "/wallet/rewards",
+    color: "text-blue-600",
+  },
+  {
+    id: "commute",
+    label: "Commute",
+    icon: Bus,
+    href: "/wallet/commute",
+    color: "text-red-500",
+  },
 ];
 
 const EXPLORE_SERVICES = [
-  { id: "us-account", label: "US Account", icon: Building, color: "text-blue-600" },
+  {
+    id: "us-account",
+    label: "US Account",
+    icon: Building,
+    color: "text-blue-600",
+  },
   { id: "ginsure", label: "GInsure", icon: Shield, color: "text-blue-600" },
-  { id: "food-hub", label: "Food Hub", icon: UtensilsCrossed, color: "text-blue-600" },
+  {
+    id: "food-hub",
+    label: "Food Hub",
+    icon: UtensilsCrossed,
+    color: "text-blue-600",
+  },
   { id: "travel", label: "Travel", icon: Plane, color: "text-blue-600" },
   { id: "gforest", label: "GForest", icon: Leaf, color: "text-green-600" },
 ];
 
 export default function WalletPage() {
-  const [currentUser, setCurrentUser] = useState<WalletUser>({
-    id: "user-1",
-    name: "Juan dela Cruz",
-    balance: 353.01,
-    avatar: "👤",
-  });
+  const [currentUser, setCurrentUser] = useState<WalletUser>(() =>
+    getStoredUser()
+  );
   const [showBalance, setShowBalance] = useState(true);
-
-  useEffect(() => {
-    setCurrentUser(getStoredUser());
-  }, []);
 
   const handleUserChange = (user: WalletUser) => {
     setCurrentUser(user);
@@ -116,7 +167,11 @@ export default function WalletPage() {
                 className="text-white/60 hover:text-white"
               >
                 {showBalance ? (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                     <path
                       fillRule="evenodd"
@@ -125,7 +180,11 @@ export default function WalletPage() {
                     />
                   </svg>
                 ) : (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
@@ -213,9 +272,7 @@ export default function WalletPage() {
               <h3 className="text-white font-bold text-lg mb-1">
                 Reload toll credits
               </h3>
-              <p className="text-white/90 text-sm mb-3">
-                in just one app
-              </p>
+              <p className="text-white/90 text-sm mb-3">in just one app</p>
               <button className="bg-red-500 hover:bg-red-600 text-white font-bold px-5 py-2 rounded-full text-sm transition">
                 Pay Bills Now
               </button>

@@ -48,7 +48,8 @@ const NAV_ITEMS = [
     id: "qr",
     label: "QR",
     href: "/wallet/qr",
-    icon: (active: boolean) => (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    icon: (_active: boolean) => (
       <svg
         className={`w-8 h-8 text-white`}
         fill="currentColor"
@@ -109,7 +110,7 @@ export default function BottomNavigation() {
       <div className="max-w-md mx-auto flex items-center justify-around h-16">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
-          
+
           if (item.isCenter) {
             return (
               <Link

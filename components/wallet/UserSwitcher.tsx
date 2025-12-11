@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { WALLET_USERS, getStoredUser, setStoredUser, type WalletUser } from "@/lib/wallet-users";
+import { useState } from "react";
+import {
+  WALLET_USERS,
+  getStoredUser,
+  setStoredUser,
+  type WalletUser,
+} from "@/lib/wallet-users";
 
 interface UserSwitcherProps {
   onUserChange?: (user: WalletUser) => void;
 }
 
 export default function UserSwitcher({ onUserChange }: UserSwitcherProps) {
-  const [currentUser, setCurrentUser] = useState<WalletUser>(WALLET_USERS[0]);
+  const [currentUser, setCurrentUser] = useState<WalletUser>(() =>
+    getStoredUser()
+  );
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    const user = getStoredUser();
-    setCurrentUser(user);
-  }, []);
 
   const handleUserSelect = (user: WalletUser) => {
     setCurrentUser(user);

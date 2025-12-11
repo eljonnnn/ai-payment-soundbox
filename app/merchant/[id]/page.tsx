@@ -3,7 +3,7 @@
 import { supabase } from "@/lib/supabase";
 import { REALTIME_SUBSCRIBE_STATES } from "@supabase/supabase-js";
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { playSoundEffect, type SoundEffect } from "@/lib/sounds";
 import { generateQRCode } from "@/lib/qrcode";
 import {
@@ -18,16 +18,10 @@ import QuickStatsCards from "@/components/merchant/QuickStatsCards";
 import QRCodeSection from "@/components/merchant/QRCodeSection";
 import AudioSettingsDrawer from "@/components/merchant/AudioSettingsDrawer";
 import TransactionList from "@/components/merchant/TransactionList";
-import {
-  calculateStats,
-  getStoredMerchantId,
-  setStoredMerchantId,
-  type Transaction,
-} from "@/lib/merchant-utils";
+import { calculateStats, type Transaction } from "@/lib/merchant-utils";
 
 export default function MerchantSoundbox() {
   const params = useParams();
-  const router = useRouter();
   const initialMerchantId = params.id as string;
 
   const [merchantId, setMerchantId] = useState(initialMerchantId);

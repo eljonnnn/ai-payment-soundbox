@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Html5Qrcode } from "html5-qrcode";
 import { Plus, Upload, Info } from "lucide-react";
-import Link from "next/link";
 import BottomNavigation from "@/components/wallet/BottomNavigation";
 
 export default function QRScannerPage() {
@@ -13,15 +12,40 @@ export default function QRScannerPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    startScanner();
+  const stopScanner = useCallback(() => {
+    if (scannerRef.current && isScanning) {
+      scannerRef.current
+        .stop()
+        .then(() => {
+          scannerRef.current?.clear();
+        })
+        .catch(console.error);
+    }
+  }, [isScanning]);
 
-    return () => {
+  const onScanSuccess = useCallback(
+    (decodedText: string) => {
+      console.log("QR Code scanned:", decodedText);
       stopScanner();
-    };
+
+      // Parse merchant ID from QR code
+      let parsedId = decodedText;
+
+      if (decodedText.includes("/pay/")) {
+        const match = decodedText.match(/\/pay\/([^/?]+)/);
+        if (match) parsedId = match[1];
+      }
+
+      router.push(`/pay/${parsedId}`);
+    },
+    [router, stopScanner]
+  );
+
+  const onScanFailure = useCallback(() => {
+    // Silent - don't log every scan attempt
   }, []);
 
-  const startScanner = async () => {
+  const startScanner = useCallback(async () => {
     try {
       setError(null);
       const scanner = new Html5Qrcode("qr-reader");
@@ -42,37 +66,17 @@ export default function QRScannerPage() {
       console.error("Camera error:", err);
       setError("Unable to access camera. Please check permissions.");
     }
-  };
+  }, [onScanSuccess, onScanFailure]);
 
-  const stopScanner = () => {
-    if (scannerRef.current && isScanning) {
-      scannerRef.current
-        .stop()
-        .then(() => {
-          scannerRef.current?.clear();
-        })
-        .catch(console.error);
-    }
-  };
+  useEffect(() => {
+    // Scanner initialization on mount is intentional
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    startScanner();
 
-  const onScanSuccess = (decodedText: string) => {
-    console.log("QR Code scanned:", decodedText);
-    stopScanner();
-
-    // Parse merchant ID from QR code
-    let parsedId = decodedText;
-
-    if (decodedText.includes("/pay/")) {
-      const match = decodedText.match(/\/pay\/([^/?]+)/);
-      if (match) parsedId = match[1];
-    }
-
-    router.push(`/pay/${parsedId}`);
-  };
-
-  const onScanFailure = (error: string) => {
-    // Silent - don't log every scan attempt
-  };
+    return () => {
+      stopScanner();
+    };
+  }, [startScanner, stopScanner]);
 
   return (
     <div className="fixed inset-0 bg-[#0066FF] flex flex-col overflow-hidden">
