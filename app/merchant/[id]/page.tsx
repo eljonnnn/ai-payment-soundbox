@@ -161,7 +161,7 @@ export default function MerchantSoundbox() {
 
           // Try to use selected voice, or fall back to first available voice
           let voiceToUse = selectedVoice;
-          if (!voiceToUse || !voices.find((v) => v.name === voiceToUse.name)) {
+          if (!voiceToUse || !voices.find((v) => v.name === voiceToUse?.name)) {
             // Find a voice that matches the language
             voiceToUse =
               voices.find((v) =>
