@@ -3,6 +3,16 @@
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { playSoundEffect, type SoundEffect } from "@/lib/sounds";
+import { generateQRCode } from "@/lib/qrcode";
+import {
+  VOICE_PRESETS,
+  MESSAGE_TEMPLATES,
+  formatMessage,
+  type VoicePreset,
+  type MessageTemplate,
+} from "@/lib/voice-presets";
+import Image from "next/image";
 
 interface Transaction {
   id: string;
@@ -20,6 +30,52 @@ export default function MerchantSoundbox() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Voice customization settings
+  const [voiceRate, setVoiceRate] = useState(0.9);
+  const [voicePitch, setVoicePitch] = useState(1.0);
+  const [voiceVolume, setVoiceVolume] = useState(1.0);
+  const [selectedVoice, setSelectedVoice] =
+    useState<SpeechSynthesisVoice | null>(null);
+  const [availableVoices, setAvailableVoices] = useState<
+    SpeechSynthesisVoice[]
+  >([]);
+  const [soundEffect, setSoundEffect] = useState<SoundEffect>("chime");
+
+  // Voice presets and templates
+  const [selectedPreset, setSelectedPreset] = useState<string>("Professional");
+  const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate>(
+    MESSAGE_TEMPLATES[0]
+  );
+  const [customMessage, setCustomMessage] = useState(
+    MESSAGE_TEMPLATES[0].template
+  );
+
+  // QR Code
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+  const [showQR, setShowQR] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Load available voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      setAvailableVoices(voices);
+      // Set default to first English voice
+      const defaultVoice =
+        voices.find((v) => v.lang.startsWith("en")) || voices[0];
+      setSelectedVoice(defaultVoice);
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }, []);
+
+  // Generate QR code
+  useEffect(() => {
+    const paymentUrl = `${window.location.origin}/pay/${merchantId}`;
+    generateQRCode(paymentUrl).then(setQrCodeUrl).catch(console.error);
+  }, [merchantId]);
+
   const startListening = () => {
     try {
       // Check if speech synthesis is supported
@@ -32,13 +88,50 @@ export default function MerchantSoundbox() {
       const utterance = new SpeechSynthesisUtterance(
         "Soundbox activated. Listening for payments."
       );
+      if (selectedVoice) utterance.voice = selectedVoice;
+      utterance.rate = voiceRate;
+      utterance.pitch = voicePitch;
+      utterance.volume = voiceVolume;
       window.speechSynthesis.speak(utterance);
+
+      // Play activation sound
+      playSoundEffect(soundEffect);
+
       setIsListening(true);
       setError(null);
     } catch (err) {
       setError("Failed to initialize audio. Please try again.");
       console.error(err);
     }
+  };
+
+  const applyPreset = (presetName: string) => {
+    const preset = VOICE_PRESETS.find((p) => p.name === presetName);
+    if (preset && presetName !== "Custom") {
+      setVoiceRate(preset.rate);
+      setVoicePitch(preset.pitch);
+      setVoiceVolume(preset.volume);
+    }
+    setSelectedPreset(presetName);
+  };
+
+  const speakPayment = (amount: number, customerName: string) => {
+    // Play sound effect first
+    playSoundEffect(soundEffect);
+
+    // Format message using selected template
+    const message =
+      selectedTemplate.id === "custom"
+        ? formatMessage(customMessage, amount, customerName)
+        : formatMessage(selectedTemplate.template, amount, customerName);
+
+    const utterance = new SpeechSynthesisUtterance(message);
+    if (selectedVoice) utterance.voice = selectedVoice;
+    utterance.rate = voiceRate;
+    utterance.pitch = voicePitch;
+    utterance.volume = voiceVolume;
+    utterance.lang = selectedTemplate.language;
+    window.speechSynthesis.speak(utterance);
   };
 
   useEffect(() => {
@@ -63,12 +156,8 @@ export default function MerchantSoundbox() {
           // Add to transaction list
           setTransactions((prev) => [txn, ...prev]);
 
-          // Announce payment via TTS
-          const message = `Payment received: ${txn.amount} pesos from ${txn.customerName}`;
-          const utterance = new SpeechSynthesisUtterance(message);
-          utterance.lang = "en-US";
-          utterance.rate = 0.9; // Slightly slower for clarity
-          window.speechSynthesis.speak(utterance);
+          // Announce payment with sound effect and TTS
+          speakPayment(Number(txn.amount), txn.customerName);
         }
       )
       .subscribe((status) => {
@@ -119,6 +208,244 @@ export default function MerchantSoundbox() {
               <p className="text-gray-500 text-sm mt-4">
                 Click to activate audio notifications
               </p>
+
+              {/* Settings Panel */}
+              <div className="mt-8">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+                >
+                  ⚙️ {showSettings ? "Hide" : "Show"} Audio Settings
+                </button>
+
+                {showSettings && (
+                  <div className="mt-6 bg-gray-50 rounded-lg p-6 text-left max-w-2xl mx-auto space-y-6">
+                    <h3 className="font-semibold text-gray-800 text-lg mb-4">
+                      🎙️ Audio Customization
+                    </h3>
+
+                    {/* Voice Presets */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Voice Preset
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {VOICE_PRESETS.map((preset) => (
+                          <button
+                            key={preset.name}
+                            onClick={() => applyPreset(preset.name)}
+                            className={`p-3 rounded-lg border-2 transition ${
+                              selectedPreset === preset.name
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-gray-300 hover:border-blue-300"
+                            }`}
+                          >
+                            <div className="text-2xl mb-1">{preset.emoji}</div>
+                            <div className="text-sm font-medium text-gray-800">
+                              {preset.name}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {preset.description}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Message Templates */}
+                    <div className="mb-6 pt-6 border-t border-gray-200">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        💬 Message Template
+                      </label>
+                      <select
+                        value={selectedTemplate.id}
+                        onChange={(e) => {
+                          const template = MESSAGE_TEMPLATES.find(
+                            (t) => t.id === e.target.value
+                          );
+                          if (template) {
+                            setSelectedTemplate(template);
+                            if (template.id === "custom") {
+                              setCustomMessage(template.template);
+                            }
+                          }
+                        }}
+                        className="w-full p-2 border border-gray-300 rounded-lg mb-2"
+                      >
+                        {MESSAGE_TEMPLATES.map((template) => (
+                          <option key={template.id} value={template.id}>
+                            {template.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      {selectedTemplate.id === "custom" ? (
+                        <div className="mt-3">
+                          <textarea
+                            value={customMessage}
+                            onChange={(e) => setCustomMessage(e.target.value)}
+                            placeholder="Use {amount} and {customer} as placeholders"
+                            className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                            rows={2}
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Use{" "}
+                            <code className="bg-gray-200 px-1 rounded">
+                              {"{amount}"}
+                            </code>{" "}
+                            and{" "}
+                            <code className="bg-gray-200 px-1 rounded">
+                              {"{customer}"}
+                            </code>{" "}
+                            as placeholders
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mt-2 p-3 bg-white rounded border border-gray-200">
+                          <p className="text-sm text-gray-600 italic">
+                            "{selectedTemplate.template}"
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Language: {selectedTemplate.language}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Fine-tune Controls (only for Custom preset) */}
+                    {selectedPreset === "Custom" && (
+                      <div className="mb-6 pt-6 border-t border-gray-200">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                          🎚️ Fine-tune Controls
+                        </h4>
+
+                        {/* Speed */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Speed: {voiceRate.toFixed(1)}x
+                          </label>
+                          <input
+                            type="range"
+                            min="0.5"
+                            max="2"
+                            step="0.1"
+                            value={voiceRate}
+                            onChange={(e) =>
+                              setVoiceRate(parseFloat(e.target.value))
+                            }
+                            className="w-full"
+                          />
+                        </div>
+
+                        {/* Pitch */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Pitch: {voicePitch.toFixed(1)}
+                          </label>
+                          <input
+                            type="range"
+                            min="0.5"
+                            max="2"
+                            step="0.1"
+                            value={voicePitch}
+                            onChange={(e) =>
+                              setVoicePitch(parseFloat(e.target.value))
+                            }
+                            className="w-full"
+                          />
+                        </div>
+
+                        {/* Volume */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Volume: {Math.round(voiceVolume * 100)}%
+                          </label>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={voiceVolume}
+                            onChange={(e) =>
+                              setVoiceVolume(parseFloat(e.target.value))
+                            }
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Voice Selection */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        🗣️ System Voice
+                      </label>
+                      <select
+                        value={selectedVoice?.name || ""}
+                        onChange={(e) => {
+                          const voice = availableVoices.find(
+                            (v) => v.name === e.target.value
+                          );
+                          setSelectedVoice(voice || null);
+                        }}
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      >
+                        {availableVoices.map((voice) => (
+                          <option key={voice.name} value={voice.name}>
+                            {voice.name} ({voice.lang})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Sound Effect */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        🔔 Sound Effect
+                      </label>
+                      <select
+                        value={soundEffect}
+                        onChange={(e) =>
+                          setSoundEffect(e.target.value as SoundEffect)
+                        }
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                      >
+                        <option value="chime">🔔 Chime</option>
+                        <option value="bell">🛎️ Bell</option>
+                        <option value="cash-register">💰 Cash Register</option>
+                        <option value="none">🔇 None</option>
+                      </select>
+                      <button
+                        onClick={() => playSoundEffect(soundEffect)}
+                        className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        Test Sound
+                      </button>
+                    </div>
+
+                    {/* Test Voice Button */}
+                    <div className="pt-6 border-t border-gray-200">
+                      <button
+                        onClick={() => speakPayment(100, "Test Customer")}
+                        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition"
+                      >
+                        🔊 Test Voice with Current Settings
+                      </button>
+                      <p className="text-xs text-gray-500 text-center mt-2">
+                        Preview: "
+                        {formatMessage(
+                          selectedTemplate.id === "custom"
+                            ? customMessage
+                            : selectedTemplate.template,
+                          100,
+                          "Test Customer"
+                        )}
+                        "
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="space-y-6">
@@ -142,6 +469,37 @@ export default function MerchantSoundbox() {
                   <strong>Payment URL:</strong>{" "}
                   <code className="bg-white px-2 py-1 rounded text-xs">{`${window.location.origin}/pay/${merchantId}`}</code>
                 </p>
+
+                <button
+                  onClick={() => setShowQR(!showQR)}
+                  className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {showQR ? "📋 Hide QR Code" : "📱 Show QR Code"}
+                </button>
+
+                {showQR && qrCodeUrl && (
+                  <div className="mt-4 text-center bg-white p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-3">Scan to pay</p>
+                    <Image
+                      src={qrCodeUrl}
+                      alt="Payment QR Code"
+                      width={300}
+                      height={300}
+                      className="mx-auto rounded-lg shadow-md"
+                    />
+                    <button
+                      onClick={() => {
+                        const link = document.createElement("a");
+                        link.download = `payment-qr-${merchantId}.png`;
+                        link.href = qrCodeUrl;
+                        link.click();
+                      }}
+                      className="mt-3 text-sm text-green-600 hover:text-green-800"
+                    >
+                      💾 Download QR Code
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>

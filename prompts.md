@@ -149,6 +149,144 @@ always update the prompts.md
 
 ---
 
+## Enhancement: Quick Wins Implementation
+
+**Date:** December 10, 2025
+
+**Prompt:**
+
+```
+Quick Wins (30-60 min each):
+QR Code Generation - Let customers scan to pay
+Sound Effects - Add chimes/bells for better alerts
+Voice Customization - Let merchants choose voice, speed, volume
+
+lets do this and lets change the speech to use google cloud text-to-speech
+```
+
+**Follow-up:**
+
+```
+never mind the google text to speech lets keep the current one
+```
+
+**Outcome:** Implemented three major enhancements to the merchant soundbox:
+
+1. **QR Code Generation**:
+
+   - Added `qrcode` library
+   - Created `/lib/qrcode.ts` utility for QR code generation
+   - Integrated QR code display in merchant soundbox with show/hide toggle
+   - Added download functionality for QR codes
+   - QR codes generated for payment URLs automatically
+
+2. **Sound Effects**:
+
+   - Created `/lib/sounds.ts` with Web Audio API sound generators
+   - Implemented three sound effects:
+     - Chime (two-tone pleasant sound)
+     - Bell (single tone)
+     - Cash Register (cha-ching simulation)
+   - Added option for no sound effect
+   - Sound plays before TTS announcement
+   - Test sound button in settings
+
+3. **Voice Customization**:
+   - Added controls for voice selection from available system voices
+   - Speed slider (0.5x - 2.0x)
+   - Pitch slider (0.5 - 2.0)
+   - Volume slider (0% - 100%)
+   - Live voice test button with current settings
+   - Settings panel with show/hide toggle
+   - Preserved Web Speech API (decided against Google Cloud TTS for MVP)
+
+**Files Modified:**
+
+- `app/merchant/[id]/page.tsx` - Enhanced with settings UI, QR code display, and customization controls
+- Created `lib/sounds.ts` - Sound effect utilities
+- Created `lib/qrcode.ts` - QR code generation utility
+
+**Technical Notes:**
+
+- All enhancements use browser APIs (no external service dependencies)
+- Sound effects use Web Audio API for synthesized tones
+- QR codes generated client-side using `qrcode` library
+- Settings persist during session (could add localStorage later)
+
+---
+
+## Enhancement: Advanced Voice Customization
+
+**Date:** December 10, 2025
+
+**Prompt:**
+
+```
+can I change how the speech sounds like?
+```
+
+**Follow-up:**
+
+```
+lets add this
+```
+
+**Outcome:** Implemented advanced voice customization features:
+
+1. **Voice Presets** (6 presets):
+
+   - Professional (👔): Clear and formal (rate: 0.9, pitch: 1.0)
+   - Friendly (😊): Warm and welcoming (rate: 1.0, pitch: 1.1)
+   - Excited (🎉): Energetic and upbeat (rate: 1.2, pitch: 1.3)
+   - Calm (😌): Soothing and relaxed (rate: 0.8, pitch: 0.9)
+   - Robotic (🤖): Mechanical and precise (rate: 1.0, pitch: 0.7)
+   - Custom (⚙️): User-defined settings with fine-tune controls
+
+2. **Message Templates** (8 templates):
+
+   - English variations:
+     - Default: "Payment received: {amount} pesos from {customer}"
+     - Formal: "Transaction completed. Amount: {amount} pesos. Customer: {customer}"
+     - Friendly: "Great! {customer} just paid {amount} pesos. Thank you!"
+     - Short: "{amount} pesos from {customer}"
+   - Tagalog variations:
+     - Default: "May bayad na: {amount} pesos mula kay {customer}"
+     - Friendly: "Salamat! Si {customer} ay nagbayad ng {amount} pesos"
+   - Spanish:
+     - Default: "Pago recibido: {amount} pesos de {customer}"
+   - Custom template with editable text area
+
+3. **Language Support**:
+
+   - Automatic language detection from template
+   - Support for English (en-US), Tagalog (tl-PH), Spanish (es-ES)
+   - TTS utterance uses template's language code
+
+4. **UI Improvements**:
+   - Visual preset selector grid with emojis and descriptions
+   - Live preview of formatted message before testing
+   - Fine-tune controls only shown when "Custom" preset selected
+   - Better organized settings panel with sections
+   - Enhanced test button with gradient styling
+
+**Files Created:**
+
+- `lib/voice-presets.ts` - Voice preset configurations, message templates, and formatting utilities
+
+**Files Modified:**
+
+- `app/merchant/[id]/page.tsx` - Integrated presets, templates, and advanced customization UI
+
+**Technical Implementation:**
+
+- Preset system applies pre-configured rate/pitch/volume settings
+- Message templates use placeholder replacement ({amount}, {customer})
+- Custom preset unlocks fine-tune sliders
+- Template selection updates TTS language automatically
+- Formatting utility handles decimal places and variable substitution
+
+---
+
 ## Next Steps
 
 <!-- Add future prompts here as development progresses -->
