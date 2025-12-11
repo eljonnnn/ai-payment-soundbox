@@ -56,16 +56,40 @@ export default function MerchantSoundbox() {
   useEffect(() => {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
-      setAvailableVoices(voices);
-      // Set default to first English voice
-      const defaultVoice =
-        voices.find((v) => v.lang.startsWith("en")) || voices[0];
-      setSelectedVoice(defaultVoice);
+      if (voices.length > 0) {
+        setAvailableVoices(voices);
+        // Set default to Google US English voice, or fallback to first English voice
+        const defaultVoice =
+          voices.find((v) => v.name === "Google US English") ||
+          voices.find((v) => v.lang === "en-US") ||
+          voices.find((v) => v.lang.startsWith("en")) ||
+          voices[0];
+        setSelectedVoice(defaultVoice);
+      }
     };
 
+    // Try loading voices immediately
     loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-  }, []);
+
+    // Set up event listener for when voices are loaded
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    // Fallback: retry loading voices after a delay if empty
+    const timer = setTimeout(() => {
+      if (availableVoices.length === 0) {
+        loadVoices();
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
+  }, [availableVoices.length]);
 
   // Generate QR code when merchant changes
   useEffect(() => {
