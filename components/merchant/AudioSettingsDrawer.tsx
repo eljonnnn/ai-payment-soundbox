@@ -75,7 +75,7 @@ export default function AudioSettingsDrawer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black bg-opacity-30 z-40"
+            className="fixed inset-0 backdrop-blur-sm bg-black/20 z-40"
           />
 
           {/* Drawer */}
@@ -205,7 +205,7 @@ export default function AudioSettingsDrawer({
 
               {/* Voice Selection */}
               <div className="pt-6 border-t border-gray-200">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   System Voice
                 </label>
                 <select
@@ -216,7 +216,7 @@ export default function AudioSettingsDrawer({
                     );
                     setSelectedVoice(voice || null);
                   }}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {availableVoices.map((voice) => (
                     <option key={voice.name} value={voice.name}>
@@ -247,7 +247,7 @@ export default function AudioSettingsDrawer({
                       }
                     }
                   }}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3 text-gray-900"
                 >
                   {MESSAGE_TEMPLATES.map((template) => (
                     <option key={template.id} value={template.id}>
@@ -302,7 +302,7 @@ export default function AudioSettingsDrawer({
                   onChange={(e) =>
                     setSoundEffect(e.target.value as SoundEffect)
                   }
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2 text-gray-900"
                 >
                   <option value="chime">🔔 Chime</option>
                   <option value="bell">🛎️ Bell</option>

@@ -376,21 +376,23 @@ export default function MerchantSoundbox() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="relative">
-                      <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <Volume2 className="w-6 h-6" />
+                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                        <Volume2 className="w-6 h-6 text-green-600" />
                       </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full animate-pulse"></div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-700 rounded-full animate-pulse"></div>
                     </div>
                     <div>
-                      <div className="text-xl font-bold">Soundbox Active</div>
-                      <div className="text-green-100 text-sm">
+                      <div className="text-xl font-bold text-white">
+                        Soundbox Active
+                      </div>
+                      <div className="text-green-50 text-sm">
                         Listening for payments on this merchant account
                       </div>
                     </div>
                   </div>
                   <button
                     onClick={stopListening}
-                    className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold px-6 py-2.5 rounded-lg transition-all"
+                    className="bg-white hover:bg-green-50 text-red-600 font-semibold px-6 py-2.5 rounded-lg transition-all shadow-sm"
                   >
                     Stop Listening
                   </button>
