@@ -3,32 +3,36 @@
 import { supabase } from "@/lib/supabase";
 import { REALTIME_SUBSCRIBE_STATES } from "@supabase/supabase-js";
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { playSoundEffect, type SoundEffect } from "@/lib/sounds";
 import { generateQRCode } from "@/lib/qrcode";
 import {
-  VOICE_PRESETS,
   MESSAGE_TEMPLATES,
   formatMessage,
   type MessageTemplate,
 } from "@/lib/voice-presets";
-import Image from "next/image";
-
-interface Transaction {
-  id: string;
-  merchantId: string;
-  amount: number;
-  customerName: string;
-  status: string;
-  createdAt: string;
-}
+import { Settings, HelpCircle, Volume2 } from "lucide-react";
+import { Toaster, toast } from "react-hot-toast";
+import MerchantSwitcher from "@/components/merchant/MerchantSwitcher";
+import QuickStatsCards from "@/components/merchant/QuickStatsCards";
+import QRCodeSection from "@/components/merchant/QRCodeSection";
+import AudioSettingsDrawer from "@/components/merchant/AudioSettingsDrawer";
+import TransactionList from "@/components/merchant/TransactionList";
+import {
+  calculateStats,
+  getStoredMerchantId,
+  setStoredMerchantId,
+  type Transaction,
+} from "@/lib/merchant-utils";
 
 export default function MerchantSoundbox() {
   const params = useParams();
-  const merchantId = params.id as string;
+  const router = useRouter();
+  const initialMerchantId = params.id as string;
+
+  const [merchantId, setMerchantId] = useState(initialMerchantId);
   const [isListening, setIsListening] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   // Voice customization settings
   const [voiceRate, setVoiceRate] = useState(0.9);
@@ -52,8 +56,7 @@ export default function MerchantSoundbox() {
 
   // QR Code
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
-  const [showQR, setShowQR] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
 
   // Load available voices
   useEffect(() => {
@@ -70,17 +73,36 @@ export default function MerchantSoundbox() {
     window.speechSynthesis.onvoiceschanged = loadVoices;
   }, []);
 
-  // Generate QR code
+  // Generate QR code when merchant changes
   useEffect(() => {
     const paymentUrl = `${window.location.origin}/pay/${merchantId}`;
     generateQRCode(paymentUrl).then(setQrCodeUrl).catch(console.error);
   }, [merchantId]);
 
+  // Handle merchant switching
+  const handleMerchantChange = (newMerchantId: string) => {
+    // Stop current listening
+    if (isListening) {
+      setIsListening(false);
+    }
+
+    // Clear transactions
+    setTransactions([]);
+
+    // Update merchant ID
+    setMerchantId(newMerchantId);
+
+    // Update URL without page reload
+    window.history.replaceState(null, "", `/merchant/${newMerchantId}`);
+
+    toast.success("Merchant switched successfully!");
+  };
+
   const startListening = () => {
     try {
       // Check if speech synthesis is supported
       if (!window.speechSynthesis) {
-        setError("Text-to-speech is not supported in this browser");
+        toast.error("Text-to-speech is not supported in this browser");
         return;
       }
 
@@ -98,21 +120,16 @@ export default function MerchantSoundbox() {
       playSoundEffect(soundEffect);
 
       setIsListening(true);
-      setError(null);
+      toast.success("Soundbox activated!");
     } catch (err) {
-      setError("Failed to initialize audio. Please try again.");
+      toast.error("Failed to initialize audio. Please try again.");
       console.error(err);
     }
   };
 
-  const applyPreset = (presetName: string) => {
-    const preset = VOICE_PRESETS.find((p) => p.name === presetName);
-    if (preset && presetName !== "Custom") {
-      setVoiceRate(preset.rate);
-      setVoicePitch(preset.pitch);
-      setVoiceVolume(preset.volume);
-    }
-    setSelectedPreset(presetName);
+  const stopListening = () => {
+    setIsListening(false);
+    toast("Soundbox deactivated", { icon: "🔇" });
   };
 
   const speakPayment = useCallback(
@@ -164,17 +181,27 @@ export default function MerchantSoundbox() {
           console.log("Received transaction:", payload);
           const txn = payload.new as Transaction;
 
-          // Add to transaction list
+          // Add to transaction list at the top
           setTransactions((prev) => [txn, ...prev]);
 
           // Announce payment with sound effect and TTS
           speakPayment(Number(txn.amount), txn.customerName);
+
+          // Show toast notification
+          toast.success(
+            `Payment received: ₱${Number(txn.amount).toFixed(2)} from ${
+              txn.customerName
+            }`,
+            { duration: 5000 }
+          );
         }
       )
       .subscribe((status) => {
         console.log("Subscription status:", status);
         if (status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR) {
-          setError("Failed to connect to realtime updates");
+          toast.error("Failed to connect to realtime updates");
+        } else if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
+          console.log("Successfully subscribed to merchant channel");
         }
       });
 
@@ -184,381 +211,177 @@ export default function MerchantSoundbox() {
     };
   }, [isListening, merchantId, speakPayment]);
 
+  // Calculate stats
+  const stats = calculateStats(transactions);
+  const paymentUrl = `${
+    typeof window !== "undefined" ? window.location.origin : ""
+  }/pay/${merchantId}`;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-800">
-                Merchant Soundbox
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Real-time payment notifications with audio alerts
-              </p>
-            </div>
-            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
-              <span className="text-3xl">🔊</span>
+    <>
+      <Toaster position="top-right" />
+
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+          <div className="max-w-7xl mx-auto px-8 py-4">
+            <div className="flex items-center justify-between">
+              {/* Left: Logo and Title */}
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-md">
+                  <span className="text-white font-bold text-2xl">G</span>
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    GCash Merchant Soundbox
+                  </h1>
+                  <p className="text-sm text-gray-500">
+                    Real-time payment notifications
+                  </p>
+                </div>
+              </div>
+
+              {/* Right: Merchant Switcher and Actions */}
+              <div className="flex items-center gap-3">
+                <MerchantSwitcher
+                  currentMerchantId={merchantId}
+                  onMerchantChange={handleMerchantChange}
+                />
+                <button
+                  onClick={() => setShowSettingsDrawer(true)}
+                  className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Audio Settings"
+                >
+                  <Settings className="w-5 h-5 text-gray-600" />
+                </button>
+                <button
+                  className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Help"
+                >
+                  <HelpCircle className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
             </div>
           </div>
+        </header>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-              ⚠️ {error}
-            </div>
-          )}
-
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto px-8 py-8">
           {!isListening ? (
-            <div className="text-center py-12">
-              <button
-                onClick={startListening}
-                className="bg-green-500 hover:bg-green-600 text-white font-bold px-8 py-4 rounded-xl text-xl transition duration-200 shadow-lg hover:shadow-xl"
-              >
-                🎧 Start Listening for Payments
-              </button>
-              <p className="text-gray-500 text-sm mt-4">
-                Click to activate audio notifications
-              </p>
-
-              {/* Settings Panel */}
-              <div className="mt-8">
+            <div className="max-w-2xl mx-auto">
+              {/* Activation Card */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
+                <div className="w-24 h-24 bg-linear-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <Volume2 className="w-12 h-12 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                  Start Listening for Payments
+                </h2>
+                <p className="text-gray-600 mb-8 text-lg">
+                  Activate the soundbox to receive real-time audio notifications
+                  when customers complete payments.
+                </p>
                 <button
-                  onClick={() => setShowSettings(!showSettings)}
-                  className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+                  onClick={startListening}
+                  className="bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold px-12 py-4 rounded-xl text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
-                  ⚙️ {showSettings ? "Hide" : "Show"} Audio Settings
+                  🎧 Activate Soundbox
                 </button>
 
-                {showSettings && (
-                  <div className="mt-6 bg-gray-50 rounded-lg p-6 text-left max-w-2xl mx-auto space-y-6">
-                    <h3 className="font-semibold text-gray-800 text-lg mb-4">
-                      🎙️ Audio Customization
-                    </h3>
-
-                    {/* Voice Presets */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Voice Preset
-                      </label>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {VOICE_PRESETS.map((preset) => (
-                          <button
-                            key={preset.name}
-                            onClick={() => applyPreset(preset.name)}
-                            className={`p-3 rounded-lg border-2 transition ${
-                              selectedPreset === preset.name
-                                ? "border-blue-500 bg-blue-50"
-                                : "border-gray-300 hover:border-blue-300"
-                            }`}
-                          >
-                            <div className="text-2xl mb-1">{preset.emoji}</div>
-                            <div className="text-sm font-medium text-gray-800">
-                              {preset.name}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {preset.description}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Message Templates */}
-                    <div className="mb-6 pt-6 border-t border-gray-200">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        💬 Message Template
-                      </label>
-                      <select
-                        value={selectedTemplate.id}
-                        onChange={(e) => {
-                          const template = MESSAGE_TEMPLATES.find(
-                            (t) => t.id === e.target.value
-                          );
-                          if (template) {
-                            setSelectedTemplate(template);
-                            if (template.id === "custom") {
-                              setCustomMessage(template.template);
-                            }
-                          }
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded-lg mb-2"
-                      >
-                        {MESSAGE_TEMPLATES.map((template) => (
-                          <option key={template.id} value={template.id}>
-                            {template.name}
-                          </option>
-                        ))}
-                      </select>
-
-                      {selectedTemplate.id === "custom" ? (
-                        <div className="mt-3">
-                          <textarea
-                            value={customMessage}
-                            onChange={(e) => setCustomMessage(e.target.value)}
-                            placeholder="Use {amount} and {customer} as placeholders"
-                            className="w-full p-2 border border-gray-300 rounded-lg text-sm"
-                            rows={2}
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            Use{" "}
-                            <code className="bg-gray-200 px-1 rounded">
-                              {"{amount}"}
-                            </code>{" "}
-                            and{" "}
-                            <code className="bg-gray-200 px-1 rounded">
-                              {"{customer}"}
-                            </code>{" "}
-                            as placeholders
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="mt-2 p-3 bg-white rounded border border-gray-200">
-                          <p className="text-sm text-gray-600 italic">
-                            &ldquo;{selectedTemplate.template}&rdquo;
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Language: {selectedTemplate.language}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Fine-tune Controls (only for Custom preset) */}
-                    {selectedPreset === "Custom" && (
-                      <div className="mb-6 pt-6 border-t border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                          🎚️ Fine-tune Controls
-                        </h4>
-
-                        {/* Speed */}
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Speed: {voiceRate.toFixed(1)}x
-                          </label>
-                          <input
-                            type="range"
-                            min="0.5"
-                            max="2"
-                            step="0.1"
-                            value={voiceRate}
-                            onChange={(e) =>
-                              setVoiceRate(parseFloat(e.target.value))
-                            }
-                            className="w-full"
-                          />
-                        </div>
-
-                        {/* Pitch */}
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Pitch: {voicePitch.toFixed(1)}
-                          </label>
-                          <input
-                            type="range"
-                            min="0.5"
-                            max="2"
-                            step="0.1"
-                            value={voicePitch}
-                            onChange={(e) =>
-                              setVoicePitch(parseFloat(e.target.value))
-                            }
-                            className="w-full"
-                          />
-                        </div>
-
-                        {/* Volume */}
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Volume: {Math.round(voiceVolume * 100)}%
-                          </label>
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            value={voiceVolume}
-                            onChange={(e) =>
-                              setVoiceVolume(parseFloat(e.target.value))
-                            }
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Voice Selection */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        🗣️ System Voice
-                      </label>
-                      <select
-                        value={selectedVoice?.name || ""}
-                        onChange={(e) => {
-                          const voice = availableVoices.find(
-                            (v) => v.name === e.target.value
-                          );
-                          setSelectedVoice(voice || null);
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded-lg"
-                      >
-                        {availableVoices.map((voice) => (
-                          <option key={voice.name} value={voice.name}>
-                            {voice.name} ({voice.lang})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Sound Effect */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        🔔 Sound Effect
-                      </label>
-                      <select
-                        value={soundEffect}
-                        onChange={(e) =>
-                          setSoundEffect(e.target.value as SoundEffect)
-                        }
-                        className="w-full p-2 border border-gray-300 rounded-lg"
-                      >
-                        <option value="chime">🔔 Chime</option>
-                        <option value="bell">🛎️ Bell</option>
-                        <option value="cash-register">💰 Cash Register</option>
-                        <option value="none">🔇 None</option>
-                      </select>
-                      <button
-                        onClick={() => playSoundEffect(soundEffect)}
-                        className="mt-2 text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        Test Sound
-                      </button>
-                    </div>
-
-                    {/* Test Voice Button */}
-                    <div className="pt-6 border-t border-gray-200">
-                      <button
-                        onClick={() => speakPayment(100, "Test Customer")}
-                        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition"
-                      >
-                        🔊 Test Voice with Current Settings
-                      </button>
-                      <p className="text-xs text-gray-500 text-center mt-2">
-                        Preview: &ldquo;
-                        {formatMessage(
-                          selectedTemplate.id === "custom"
-                            ? customMessage
-                            : selectedTemplate.template,
-                          100,
-                          "Test Customer"
-                        )}
-                        &rdquo;
-                      </p>
-                    </div>
-                  </div>
-                )}
+                {/* Quick Info */}
+                <div className="mt-12 pt-8 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowSettingsDrawer(true)}
+                    className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                  >
+                    ⚙️ Configure Audio Settings First
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="bg-green-100 border border-green-400 p-4 rounded-lg flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="animate-pulse w-3 h-3 bg-green-500 rounded-full"></div>
+              {/* Status Banner */}
+              <div className="bg-linear-to-r from-green-500 to-green-600 rounded-xl shadow-md p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        <Volume2 className="w-6 h-6" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full animate-pulse"></div>
+                    </div>
+                    <div>
+                      <div className="text-xl font-bold">Soundbox Active</div>
+                      <div className="text-green-100 text-sm">
+                        Listening for payments on this merchant account
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={stopListening}
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold px-6 py-2.5 rounded-lg transition-all"
+                  >
+                    Stop Listening
+                  </button>
                 </div>
-                <p className="text-green-800 font-semibold ml-3">
-                  🔊 Listening for payments...
-                </p>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">
-                  <strong>Merchant ID:</strong>{" "}
-                  <code className="bg-white px-2 py-1 rounded">
-                    {merchantId}
-                  </code>
-                </p>
-                <p className="text-sm text-gray-600 mt-2">
-                  <strong>Payment URL:</strong>{" "}
-                  <code className="bg-white px-2 py-1 rounded text-xs">{`${window.location.origin}/pay/${merchantId}`}</code>
-                </p>
+              {/* Stats Cards */}
+              <QuickStatsCards stats={stats} />
 
-                <button
-                  onClick={() => setShowQR(!showQR)}
-                  className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  {showQR ? "📋 Hide QR Code" : "📱 Show QR Code"}
-                </button>
-
-                {showQR && qrCodeUrl && (
-                  <div className="mt-4 text-center bg-white p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-3">Scan to pay</p>
-                    <Image
-                      src={qrCodeUrl}
-                      alt="Payment QR Code"
-                      width={300}
-                      height={300}
-                      className="mx-auto rounded-lg shadow-md"
-                    />
-                    <button
-                      onClick={() => {
-                        const link = document.createElement("a");
-                        link.download = `payment-qr-${merchantId}.png`;
-                        link.href = qrCodeUrl;
-                        link.click();
-                      }}
-                      className="mt-3 text-sm text-green-600 hover:text-green-800"
-                    >
-                      💾 Download QR Code
-                    </button>
+              {/* Two Column Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left: Transactions (2/3 width) */}
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Recent Transactions
+                    </h2>
+                    <div className="text-sm text-gray-500">
+                      {transactions.length} total
+                    </div>
                   </div>
-                )}
-              </div>
+                  <TransactionList transactions={transactions} />
+                </div>
 
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                  Recent Transactions
-                </h2>
-                {transactions.length === 0 ? (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <p className="text-gray-500 text-lg">No transactions yet</p>
-                    <p className="text-gray-400 text-sm mt-2">
-                      Waiting for customer payments...
-                    </p>
-                  </div>
-                ) : (
-                  <ul className="space-y-3">
-                    {transactions.map((txn) => (
-                      <li
-                        key={txn.id}
-                        className="bg-white border border-gray-200 p-4 rounded-lg hover:shadow-md transition"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="text-2xl font-bold text-green-600">
-                              ₱{Number(txn.amount).toFixed(2)}
-                            </div>
-                            <div className="text-gray-700 font-medium mt-1">
-                              {txn.customerName}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {new Date(txn.createdAt).toLocaleString("en-PH", {
-                                dateStyle: "medium",
-                                timeStyle: "medium",
-                              })}
-                            </div>
-                          </div>
-                          <div className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
-                            {txn.status}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                {/* Right: QR Code (1/3 width) */}
+                <div className="lg:col-span-1">
+                  <QRCodeSection
+                    qrCodeUrl={qrCodeUrl}
+                    merchantId={merchantId}
+                    paymentUrl={paymentUrl}
+                  />
+                </div>
               </div>
             </div>
           )}
-        </div>
+        </main>
       </div>
-    </div>
+
+      {/* Audio Settings Drawer */}
+      <AudioSettingsDrawer
+        isOpen={showSettingsDrawer}
+        onClose={() => setShowSettingsDrawer(false)}
+        voiceRate={voiceRate}
+        setVoiceRate={setVoiceRate}
+        voicePitch={voicePitch}
+        setVoicePitch={setVoicePitch}
+        voiceVolume={voiceVolume}
+        setVoiceVolume={setVoiceVolume}
+        selectedVoice={selectedVoice}
+        setSelectedVoice={setSelectedVoice}
+        availableVoices={availableVoices}
+        soundEffect={soundEffect}
+        setSoundEffect={setSoundEffect}
+        selectedPreset={selectedPreset}
+        setSelectedPreset={setSelectedPreset}
+        selectedTemplate={selectedTemplate}
+        setSelectedTemplate={setSelectedTemplate}
+        customMessage={customMessage}
+        setCustomMessage={setCustomMessage}
+        speakPayment={speakPayment}
+      />
+    </>
   );
 }
