@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ChevronDown, Store } from "lucide-react";
 import { MerchantInfo, setStoredMerchantId } from "@/lib/merchant-utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,11 +20,7 @@ export default function MerchantSwitcher({
 
   const currentMerchant = merchants.find((m) => m.id === currentMerchantId);
 
-  useEffect(() => {
-    fetchMerchants();
-  }, []);
-
-  const fetchMerchants = async () => {
+  const fetchMerchants = useCallback(async () => {
     try {
       const response = await fetch("/api/merchants/list");
       const data = await response.json();
@@ -45,7 +41,11 @@ export default function MerchantSwitcher({
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentMerchantId, onMerchantChange]);
+
+  useEffect(() => {
+    fetchMerchants();
+  }, [fetchMerchants]);
 
   const handleMerchantSelect = (merchantId: string) => {
     setStoredMerchantId(merchantId);

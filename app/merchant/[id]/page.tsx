@@ -39,6 +39,7 @@ export default function MerchantSoundbox() {
     SpeechSynthesisVoice[]
   >([]);
   const [soundEffect, setSoundEffect] = useState<SoundEffect>("chime");
+  const [voicesLoaded, setVoicesLoaded] = useState(false);
 
   // Voice presets and templates
   const [selectedPreset, setSelectedPreset] = useState<string>("Professional");
@@ -53,25 +54,79 @@ export default function MerchantSoundbox() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
 
-  // Load available voices
+  // Load available voices with retry logic
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    let attempts = 0;
+    const maxAttempts = 10;
+    let pollInterval: NodeJS.Timeout | null = null;
+
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
-      setAvailableVoices(voices);
-      // Set default to Google US English voice
-      const defaultVoice =
-        voices.find(
-          (v) => v.name === "Google US English" && v.lang === "en-US"
-        ) ||
-        voices.find((v) => v.lang.startsWith("en")) ||
-        voices[0];
-      setSelectedVoice(defaultVoice);
+
+      if (voices.length > 0) {
+        console.log("✅ Voices loaded:", voices.length);
+        setAvailableVoices(voices);
+        // Set default to Google US English voice
+        const defaultVoice =
+          voices.find(
+            (v) => v.name === "Google US English" && v.lang === "en-US"
+          ) ||
+          voices.find((v) => v.lang.startsWith("en")) ||
+          voices[0];
+        setSelectedVoice(defaultVoice);
+        setVoicesLoaded(true);
+        return true;
+      }
+      return false;
     };
 
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
+    // Try loading immediately (might be cached)
+    if (loadVoices()) return;
+
+    // Set up event listener for async voice loading
+    const handleVoicesChanged = () => {
+      if (loadVoices() && pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    };
+
+    window.speechSynthesis.addEventListener(
+      "voiceschanged",
+      handleVoicesChanged
+    );
+
+    // Fallback polling for browsers that don't fire the event reliably
+    pollInterval = setInterval(() => {
+      attempts++;
+      if (loadVoices() || attempts >= maxAttempts) {
+        if (pollInterval) {
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
+        if (attempts >= maxAttempts && !voicesLoaded) {
+          console.warn(
+            "⚠️ Voices failed to load after",
+            maxAttempts,
+            "attempts"
+          );
+        }
+      }
+    }, 100);
+
+    // Cleanup
+    return () => {
+      window.speechSynthesis.removeEventListener(
+        "voiceschanged",
+        handleVoicesChanged
+      );
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Generate QR code when merchant changes
@@ -109,11 +164,24 @@ export default function MerchantSoundbox() {
         return;
       }
 
+      // Check if voices are loaded
+      if (!voicesLoaded || availableVoices.length === 0) {
+        toast.error(
+          "Voice system is still loading. Please wait a moment and try again.",
+          { duration: 4000 }
+        );
+        return;
+      }
+
       // Prime speechSynthesis with user gesture
       const utterance = new SpeechSynthesisUtterance(
         "Soundbox activated. Listening for payments."
       );
-      if (selectedVoice) utterance.voice = selectedVoice;
+      // Ensure we have a voice before using it
+      const voiceToUse = selectedVoice || availableVoices[0];
+      if (voiceToUse) {
+        utterance.voice = voiceToUse;
+      }
       utterance.rate = voiceRate;
       utterance.pitch = voicePitch;
       utterance.volume = voiceVolume;
@@ -144,6 +212,12 @@ export default function MerchantSoundbox() {
       // Play sound effect first
       playSoundEffect(soundEffect);
 
+      // Check if voices are loaded
+      if (typeof window === "undefined" || !voicesLoaded) {
+        console.warn("Voices not yet loaded, skipping speech");
+        return;
+      }
+
       // Format message using selected template
       const message =
         selectedTemplate.id === "custom"
@@ -153,73 +227,75 @@ export default function MerchantSoundbox() {
       console.log("Message to speak:", message);
 
       // Cancel any ongoing speech
-      if (typeof window !== "undefined") {
-        window.speechSynthesis.cancel();
+      window.speechSynthesis.cancel();
 
-        // Longer delay and ensure voices are loaded
+      // Small delay after cancel (required by some browsers)
+      setTimeout(() => {
+        // Get fresh voices list
+        const voices = window.speechSynthesis.getVoices();
+        console.log("Available voices count:", voices.length);
+
+        if (voices.length === 0) {
+          console.error("No voices available at speech time");
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(message);
+
+        // Try to use selected voice, or fall back to first available voice
+        let voiceToUse = selectedVoice;
+        if (!voiceToUse || !voices.find((v) => v.name === voiceToUse?.name)) {
+          // Find a voice that matches the language
+          voiceToUse =
+            voices.find((v) => v.lang.startsWith(selectedTemplate.language)) ||
+            voices[0];
+          console.log("Falling back to voice:", voiceToUse?.name);
+        }
+
+        if (voiceToUse) {
+          utterance.voice = voiceToUse;
+          console.log(
+            "Using voice:",
+            voiceToUse.name,
+            "Lang:",
+            voiceToUse.lang
+          );
+        } else {
+          console.error("No voices available!");
+        }
+
+        utterance.rate = voiceRate;
+        utterance.pitch = voicePitch;
+        utterance.volume = voiceVolume;
+        utterance.lang = selectedTemplate.language;
+
+        console.log("Utterance settings:", {
+          rate: utterance.rate,
+          pitch: utterance.pitch,
+          volume: utterance.volume,
+          lang: utterance.lang,
+          voice: utterance.voice?.name,
+          text: utterance.text,
+        });
+
+        // Add event listeners for debugging
+        utterance.onstart = () => console.log("✅ Speech started");
+        utterance.onend = () => console.log("✅ Speech ended");
+        utterance.onerror = (event) =>
+          console.error("❌ Speech error:", event.error, event);
+        utterance.onpause = () => console.log("⏸️ Speech paused");
+        utterance.onresume = () => console.log("▶️ Speech resumed");
+
+        console.log("Calling speechSynthesis.speak()...");
+        window.speechSynthesis.speak(utterance);
+
+        // Check if speaking
         setTimeout(() => {
-          // Get fresh voices list to ensure they're loaded
-          const voices = window.speechSynthesis.getVoices();
-          console.log("Available voices count:", voices.length);
-
-          const utterance = new SpeechSynthesisUtterance(message);
-
-          // Try to use selected voice, or fall back to first available voice
-          let voiceToUse = selectedVoice;
-          if (!voiceToUse || !voices.find((v) => v.name === voiceToUse?.name)) {
-            // Find a voice that matches the language
-            voiceToUse =
-              voices.find((v) =>
-                v.lang.startsWith(selectedTemplate.language)
-              ) || voices[0];
-            console.log("Falling back to voice:", voiceToUse?.name);
-          }
-
-          if (voiceToUse) {
-            utterance.voice = voiceToUse;
-            console.log(
-              "Using voice:",
-              voiceToUse.name,
-              "Lang:",
-              voiceToUse.lang
-            );
-          } else {
-            console.error("No voices available!");
-          }
-
-          utterance.rate = voiceRate;
-          utterance.pitch = voicePitch;
-          utterance.volume = voiceVolume;
-          utterance.lang = selectedTemplate.language;
-
-          console.log("Utterance settings:", {
-            rate: utterance.rate,
-            pitch: utterance.pitch,
-            volume: utterance.volume,
-            lang: utterance.lang,
-            voice: utterance.voice?.name,
-            text: utterance.text,
-          });
-
-          // Add event listeners for debugging
-          utterance.onstart = () => console.log("✅ Speech started");
-          utterance.onend = () => console.log("✅ Speech ended");
-          utterance.onerror = (event) =>
-            console.error("❌ Speech error:", event.error, event);
-          utterance.onpause = () => console.log("⏸️ Speech paused");
-          utterance.onresume = () => console.log("▶️ Speech resumed");
-
-          console.log("Calling speechSynthesis.speak()...");
-          window.speechSynthesis.speak(utterance);
-
-          // Check if speaking
-          setTimeout(() => {
-            console.log("Is speaking?", window.speechSynthesis.speaking);
-            console.log("Is pending?", window.speechSynthesis.pending);
-            console.log("Is paused?", window.speechSynthesis.paused);
-          }, 200);
-        }, 250);
-      }
+          console.log("Is speaking?", window.speechSynthesis.speaking);
+          console.log("Is pending?", window.speechSynthesis.pending);
+          console.log("Is paused?", window.speechSynthesis.paused);
+        }, 200);
+      }, 50);
     },
     [
       soundEffect,
@@ -229,6 +305,7 @@ export default function MerchantSoundbox() {
       voiceRate,
       voicePitch,
       voiceVolume,
+      voicesLoaded,
     ]
   );
 
@@ -290,6 +367,16 @@ export default function MerchantSoundbox() {
   return (
     <>
       <Toaster position="top-right" />
+
+      {/* Voice Loading Indicator */}
+      {!voicesLoaded && (
+        <div className="fixed top-4 right-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3 shadow-lg z-50 flex items-center gap-2">
+          <div className="w-4 h-4 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm text-yellow-800 font-medium">
+            Loading voice system...
+          </p>
+        </div>
+      )}
 
       <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
         {/* Header */}
