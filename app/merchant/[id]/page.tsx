@@ -54,17 +54,27 @@ export default function MerchantSoundbox() {
 
   // Load available voices
   useEffect(() => {
+    let isSubscribed = true;
+
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
+      console.log("Voices loaded:", voices.length);
+      
+      if (voices.length > 0 && isSubscribed) {
         setAvailableVoices(voices);
-        // Set default to Google US English voice, or fallback to first English voice
-        const defaultVoice =
-          voices.find((v) => v.name === "Google US English") ||
-          voices.find((v) => v.lang === "en-US") ||
-          voices.find((v) => v.lang.startsWith("en")) ||
-          voices[0];
-        setSelectedVoice(defaultVoice);
+        
+        // Only set default voice if not already set
+        setSelectedVoice((currentVoice) => {
+          if (currentVoice) return currentVoice;
+          
+          // Set default to Google US English voice, or fallback to first English voice
+          const defaultVoice =
+            voices.find((v) => v.name === "Google US English") ||
+            voices.find((v) => v.lang === "en-US") ||
+            voices.find((v) => v.lang.startsWith("en")) ||
+            voices[0];
+          return defaultVoice;
+        });
       }
     };
 
@@ -72,24 +82,26 @@ export default function MerchantSoundbox() {
     loadVoices();
 
     // Set up event listener for when voices are loaded
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
+    const handleVoicesChanged = () => {
+      console.log("Voices changed event fired");
+      loadVoices();
+    };
+    
+    window.speechSynthesis.addEventListener("voiceschanged", handleVoicesChanged);
 
-    // Fallback: retry loading voices after a delay if empty
-    const timer = setTimeout(() => {
-      if (availableVoices.length === 0) {
-        loadVoices();
-      }
-    }, 500);
+    // Aggressive fallback: retry multiple times
+    const timer1 = setTimeout(loadVoices, 100);
+    const timer2 = setTimeout(loadVoices, 500);
+    const timer3 = setTimeout(loadVoices, 1000);
 
     return () => {
-      clearTimeout(timer);
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = null;
-      }
+      isSubscribed = false;
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      window.speechSynthesis.removeEventListener("voiceschanged", handleVoicesChanged);
     };
-  }, [availableVoices.length]);
+  }, []); // Run only once on mount
 
   // Generate QR code when merchant changes
   useEffect(() => {
