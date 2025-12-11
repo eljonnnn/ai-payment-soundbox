@@ -320,14 +320,14 @@ export default function MerchantSoundbox() {
           ) : (
             <div className="space-y-6">
               {/* Status Banner */}
-              <div className="bg-linear-to-r from-green-500 to-green-600 rounded-xl shadow-md p-6 text-white">
+              <div className="bg-linear-to-r from-green-500 to-green-700 rounded-xl shadow-md p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="relative">
                       <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <Volume2 className="w-6 h-6" />
+                        <Volume2 className="w-6 h-6 text-gray-400" />
                       </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full animate-pulse"></div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse"></div>
                     </div>
                     <div>
                       <div className="text-xl font-bold">Soundbox Active</div>
@@ -338,7 +338,7 @@ export default function MerchantSoundbox() {
                   </div>
                   <button
                     onClick={stopListening}
-                    className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold px-6 py-2.5 rounded-lg transition-all"
+                    className="bg-red-600 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold px-6 py-2.5 rounded-lg transition-all"
                   >
                     Stop Listening
                   </button>

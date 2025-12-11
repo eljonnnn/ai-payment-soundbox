@@ -89,10 +89,10 @@ export default function AudioSettingsDrawer({
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-blue-900">
                   Audio Settings
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-blue-600 mt-1">
                   Customize voice and sound notifications
                 </p>
               </div>
@@ -110,7 +110,7 @@ export default function AudioSettingsDrawer({
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <Volume2 className="w-5 h-5 text-blue-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-blue-900">
                     Voice Preset
                   </h3>
                 </div>
@@ -126,10 +126,10 @@ export default function AudioSettingsDrawer({
                       }`}
                     >
                       <div className="text-3xl mb-2">{preset.emoji}</div>
-                      <div className="text-sm font-semibold text-gray-900">
+                      <div className="text-sm font-semibold text-blue-900">
                         {preset.name}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-blue-600 mt-1">
                         {preset.description}
                       </div>
                     </button>
@@ -145,13 +145,13 @@ export default function AudioSettingsDrawer({
                   exit={{ opacity: 0, height: 0 }}
                   className="space-y-4 pt-6 border-t border-gray-200"
                 >
-                  <h4 className="text-sm font-semibold text-gray-700">
+                  <h4 className="text-sm font-semibold text-blue-900">
                     Fine-tune Controls
                   </h4>
 
                   {/* Speed */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-blue-900 mb-2">
                       Speed: {voiceRate.toFixed(1)}x
                     </label>
                     <input
@@ -167,7 +167,7 @@ export default function AudioSettingsDrawer({
 
                   {/* Pitch */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-blue-900 mb-2">
                       Pitch: {voicePitch.toFixed(1)}
                     </label>
                     <input
@@ -185,7 +185,7 @@ export default function AudioSettingsDrawer({
 
                   {/* Volume */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-blue-900 mb-2">
                       Volume: {Math.round(voiceVolume * 100)}%
                     </label>
                     <input
@@ -205,7 +205,7 @@ export default function AudioSettingsDrawer({
 
               {/* Voice Selection */}
               <div className="pt-6 border-t border-gray-200">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-blue-900 mb-2">
                   System Voice
                 </label>
                 <select
@@ -216,7 +216,7 @@ export default function AudioSettingsDrawer({
                     );
                     setSelectedVoice(voice || null);
                   }}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {availableVoices.map((voice) => (
                     <option key={voice.name} value={voice.name}>
@@ -230,7 +230,7 @@ export default function AudioSettingsDrawer({
               <div className="pt-6 border-t border-gray-200">
                 <div className="flex items-center gap-2 mb-4">
                   <MessageSquare className="w-5 h-5 text-blue-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-blue-900">
                     Message Template
                   </h3>
                 </div>
@@ -247,7 +247,7 @@ export default function AudioSettingsDrawer({
                       }
                     }
                   }}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
                 >
                   {MESSAGE_TEMPLATES.map((template) => (
                     <option key={template.id} value={template.id}>
@@ -262,27 +262,27 @@ export default function AudioSettingsDrawer({
                       value={customMessage}
                       onChange={(e) => setCustomMessage(e.target.value)}
                       placeholder="Use {amount} and {customer} as placeholders"
-                      className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-gray-300 rounded-lg text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={3}
                     />
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-blue-600 mt-2">
                       Use{" "}
-                      <code className="bg-gray-200 px-1 rounded">
+                      <code className="bg-blue-100 text-blue-900 px-1 rounded">
                         {"{amount}"}
                       </code>{" "}
                       and{" "}
-                      <code className="bg-gray-200 px-1 rounded">
+                      <code className="bg-blue-100 text-blue-900 px-1 rounded">
                         {"{customer}"}
                       </code>{" "}
                       as placeholders
                     </p>
                   </div>
                 ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-sm text-gray-700 italic">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-900 italic">
                       &ldquo;{selectedTemplate.template}&rdquo;
                     </p>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-blue-600 mt-2">
                       Language: {selectedTemplate.language}
                     </p>
                   </div>
@@ -293,7 +293,7 @@ export default function AudioSettingsDrawer({
               <div className="pt-6 border-t border-gray-200">
                 <div className="flex items-center gap-2 mb-4">
                   <Bell className="w-5 h-5 text-blue-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-blue-900">
                     Sound Effect
                   </h3>
                 </div>
@@ -302,7 +302,7 @@ export default function AudioSettingsDrawer({
                   onChange={(e) =>
                     setSoundEffect(e.target.value as SoundEffect)
                   }
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
                 >
                   <option value="chime">🔔 Chime</option>
                   <option value="bell">🛎️ Bell</option>
@@ -328,7 +328,7 @@ export default function AudioSettingsDrawer({
                     Test Voice with Current Settings
                   </div>
                 </button>
-                <p className="text-xs text-gray-500 text-center mt-3">
+                <p className="text-xs text-blue-600 text-center mt-3">
                   Preview: &ldquo;
                   {formatMessage(
                     selectedTemplate.id === "custom"
