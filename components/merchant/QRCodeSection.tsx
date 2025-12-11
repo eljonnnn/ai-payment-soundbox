@@ -70,10 +70,10 @@ export default function QRCodeSection({
             <QrCode className="w-6 h-6 text-white" />
           </div>
           <div className="text-left">
-            <div className="text-sm font-semibold text-blue-900">
+            <div className="text-sm font-semibold text-gray-900">
               Payment QR Code
             </div>
-            <div className="text-xs text-blue-600">
+            <div className="text-xs text-gray-500">
               Share with customers to accept payments
             </div>
           </div>
@@ -115,7 +115,7 @@ export default function QRCodeSection({
 
               {/* Payment URL */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-xs text-blue-600 font-medium mb-2">
+                <div className="text-xs text-gray-500 font-medium mb-2">
                   Payment URL
                 </div>
                 <div className="flex items-center gap-2">

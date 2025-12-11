@@ -54,105 +54,25 @@ export default function MerchantSoundbox() {
 
   // Load available voices
   useEffect(() => {
-    let isSubscribed = true;
-    let retryCount = 0;
-    const maxRetries = 10;
+    if (typeof window === "undefined") return;
 
     const loadVoices = () => {
-      // Force speech synthesis to initialize by creating and canceling an utterance
-      const utterance = new SpeechSynthesisUtterance("");
-      window.speechSynthesis.speak(utterance);
-      window.speechSynthesis.cancel();
-
       const voices = window.speechSynthesis.getVoices();
-      console.log(
-        `[Voice Loading] Attempt ${retryCount + 1}: Found ${
-          voices.length
-        } voices`
-      );
-
-      if (voices.length > 0 && isSubscribed) {
-        console.log(
-          "[Voice Loading] Successfully loaded voices:",
-          voices.map((v) => v.name)
-        );
-        setAvailableVoices(voices);
-
-        // Only set default voice if not already set
-        setSelectedVoice((currentVoice) => {
-          if (currentVoice) return currentVoice;
-
-          // Set default to Google US English voice, or fallback to first English voice
-          const defaultVoice =
-            voices.find((v) => v.name === "Google US English") ||
-            voices.find((v) => v.lang === "en-US") ||
-            voices.find((v) => v.lang.startsWith("en")) ||
-            voices[0];
-          console.log(
-            "[Voice Loading] Default voice set to:",
-            defaultVoice?.name
-          );
-          return defaultVoice;
-        });
-      } else if (retryCount < maxRetries) {
-        retryCount++;
-        setTimeout(loadVoices, 200 * retryCount); // Increasing delays
-      }
-    };
-
-    // Set up event listener for when voices are loaded
-    const handleVoicesChanged = () => {
-      console.log("[Voice Loading] voiceschanged event fired");
-      loadVoices();
-    };
-
-    window.speechSynthesis.addEventListener(
-      "voiceschanged",
-      handleVoicesChanged
-    );
-
-    // Initial load with small delay to let browser initialize
-    const initialTimer = setTimeout(loadVoices, 50);
-
-    return () => {
-      isSubscribed = false;
-      clearTimeout(initialTimer);
-      window.speechSynthesis.removeEventListener(
-        "voiceschanged",
-        handleVoicesChanged
-      );
-    };
-  }, []); // Run only once on mount
-
-  // Manual voice refresh function
-  const refreshVoices = useCallback(() => {
-    console.log("[Voice Loading] Manual refresh triggered");
-    // Force speech synthesis to wake up with user interaction
-    const utterance = new SpeechSynthesisUtterance("test");
-    window.speechSynthesis.speak(utterance);
-    window.speechSynthesis.cancel();
-
-    // Load voices
-    const voices = window.speechSynthesis.getVoices();
-    console.log(
-      "[Voice Loading] Manual refresh found:",
-      voices.length,
-      "voices"
-    );
-
-    if (voices.length > 0) {
       setAvailableVoices(voices);
+      // Set default to first English voice
       const defaultVoice =
-        voices.find((v) => v.name === "Google US English") ||
-        voices.find((v) => v.lang === "en-US") ||
-        voices.find((v) => v.lang.startsWith("en")) ||
-        voices[0];
+        voices.find((v) => v.lang.startsWith("en")) || voices[0];
       setSelectedVoice(defaultVoice);
-    }
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
   }, []);
 
   // Generate QR code when merchant changes
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const paymentUrl = `${window.location.origin}/pay/${merchantId}`;
     generateQRCode(paymentUrl).then(setQrCodeUrl).catch(console.error);
   }, [merchantId]);
@@ -310,10 +230,10 @@ export default function MerchantSoundbox() {
                   <span className="text-white font-bold text-2xl">G</span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-blue-900">
+                  <h1 className="text-2xl font-bold text-gray-900">
                     GCash Merchant Soundbox
                   </h1>
-                  <p className="text-sm text-blue-600">
+                  <p className="text-sm text-gray-500">
                     Real-time payment notifications
                   </p>
                 </div>
@@ -352,10 +272,10 @@ export default function MerchantSoundbox() {
                 <div className="w-24 h-24 bg-linear-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                   <Volume2 className="w-12 h-12 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-blue-900 mb-3">
+                <h2 className="text-3xl font-bold text-gray-900 mb-3">
                   Start Listening for Payments
                 </h2>
-                <p className="text-gray-700 mb-8 text-lg">
+                <p className="text-gray-600 mb-8 text-lg">
                   Activate the soundbox to receive real-time audio notifications
                   when customers complete payments.
                 </p>
@@ -380,14 +300,14 @@ export default function MerchantSoundbox() {
           ) : (
             <div className="space-y-6">
               {/* Status Banner */}
-              <div className="bg-linear-to-r from-green-500 to-green-700 rounded-xl shadow-md p-6 text-white">
+              <div className="bg-linear-to-r from-green-500 to-green-600 rounded-xl shadow-md p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="relative">
                       <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                        <Volume2 className="w-6 h-6 text-gray-400" />
+                        <Volume2 className="w-6 h-6" />
                       </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse"></div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full animate-pulse"></div>
                     </div>
                     <div>
                       <div className="text-xl font-bold">Soundbox Active</div>
@@ -398,7 +318,7 @@ export default function MerchantSoundbox() {
                   </div>
                   <button
                     onClick={stopListening}
-                    className="bg-red-600 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold px-6 py-2.5 rounded-lg transition-all"
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold px-6 py-2.5 rounded-lg transition-all"
                   >
                     Stop Listening
                   </button>
@@ -413,10 +333,10 @@ export default function MerchantSoundbox() {
                 {/* Left: Transactions (2/3 width) */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-blue-900">
+                    <h2 className="text-xl font-bold text-gray-900">
                       Recent Transactions
                     </h2>
-                    <div className="text-sm text-blue-600">
+                    <div className="text-sm text-gray-500">
                       {transactions.length} total
                     </div>
                   </div>
@@ -459,7 +379,6 @@ export default function MerchantSoundbox() {
         customMessage={customMessage}
         setCustomMessage={setCustomMessage}
         speakPayment={speakPayment}
-        refreshVoices={refreshVoices}
       />
     </>
   );
