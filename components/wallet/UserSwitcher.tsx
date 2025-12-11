@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   WALLET_USERS,
+  DEFAULT_USER,
   getStoredUser,
   setStoredUser,
   type WalletUser,
@@ -13,10 +14,14 @@ interface UserSwitcherProps {
 }
 
 export default function UserSwitcher({ onUserChange }: UserSwitcherProps) {
-  const [currentUser, setCurrentUser] = useState<WalletUser>(() =>
-    getStoredUser()
-  );
+  const [currentUser, setCurrentUser] = useState<WalletUser>(DEFAULT_USER);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    // Hydration fix: load from localStorage after mount
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentUser(getStoredUser());
+  }, []);
 
   const handleUserSelect = (user: WalletUser) => {
     setCurrentUser(user);

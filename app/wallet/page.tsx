@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -19,7 +19,11 @@ import {
 } from "lucide-react";
 import UserSwitcher from "@/components/wallet/UserSwitcher";
 import BottomNavigation from "@/components/wallet/BottomNavigation";
-import { getStoredUser, type WalletUser } from "@/lib/wallet-users";
+import {
+  getStoredUser,
+  DEFAULT_USER,
+  type WalletUser,
+} from "@/lib/wallet-users";
 
 const ACTION_BUTTONS = [
   {
@@ -99,14 +103,25 @@ const EXPLORE_SERVICES = [
 ];
 
 export default function WalletPage() {
-  const [currentUser, setCurrentUser] = useState<WalletUser>(() =>
-    getStoredUser()
-  );
+  const [currentUser, setCurrentUser] = useState<WalletUser>(DEFAULT_USER);
   const [showBalance, setShowBalance] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // Hydration fix: load from localStorage after mount
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+    setCurrentUser(getStoredUser());
+  }, []);
 
   const handleUserChange = (user: WalletUser) => {
     setCurrentUser(user);
   };
+
+  // Prevent hydration mismatch by showing default until mounted
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
