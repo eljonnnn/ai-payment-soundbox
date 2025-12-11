@@ -132,6 +132,10 @@ export default function MerchantSoundbox() {
 
   const speakPayment = useCallback(
     (amount: number, customerName: string) => {
+      console.log("=== speakPayment called ===");
+      console.log("Amount:", amount);
+      console.log("Customer:", customerName);
+
       // Play sound effect first
       playSoundEffect(soundEffect);
 
@@ -141,13 +145,76 @@ export default function MerchantSoundbox() {
           ? formatMessage(customMessage, amount, customerName)
           : formatMessage(selectedTemplate.template, amount, customerName);
 
-      const utterance = new SpeechSynthesisUtterance(message);
-      if (selectedVoice) utterance.voice = selectedVoice;
-      utterance.rate = voiceRate;
-      utterance.pitch = voicePitch;
-      utterance.volume = voiceVolume;
-      utterance.lang = selectedTemplate.language;
-      window.speechSynthesis.speak(utterance);
+      console.log("Message to speak:", message);
+
+      // Cancel any ongoing speech
+      if (typeof window !== "undefined") {
+        window.speechSynthesis.cancel();
+
+        // Longer delay and ensure voices are loaded
+        setTimeout(() => {
+          // Get fresh voices list to ensure they're loaded
+          const voices = window.speechSynthesis.getVoices();
+          console.log("Available voices count:", voices.length);
+
+          const utterance = new SpeechSynthesisUtterance(message);
+
+          // Try to use selected voice, or fall back to first available voice
+          let voiceToUse = selectedVoice;
+          if (!voiceToUse || !voices.find((v) => v.name === voiceToUse.name)) {
+            // Find a voice that matches the language
+            voiceToUse =
+              voices.find((v) =>
+                v.lang.startsWith(selectedTemplate.language)
+              ) || voices[0];
+            console.log("Falling back to voice:", voiceToUse?.name);
+          }
+
+          if (voiceToUse) {
+            utterance.voice = voiceToUse;
+            console.log(
+              "Using voice:",
+              voiceToUse.name,
+              "Lang:",
+              voiceToUse.lang
+            );
+          } else {
+            console.error("No voices available!");
+          }
+
+          utterance.rate = voiceRate;
+          utterance.pitch = voicePitch;
+          utterance.volume = voiceVolume;
+          utterance.lang = selectedTemplate.language;
+
+          console.log("Utterance settings:", {
+            rate: utterance.rate,
+            pitch: utterance.pitch,
+            volume: utterance.volume,
+            lang: utterance.lang,
+            voice: utterance.voice?.name,
+            text: utterance.text,
+          });
+
+          // Add event listeners for debugging
+          utterance.onstart = () => console.log("✅ Speech started");
+          utterance.onend = () => console.log("✅ Speech ended");
+          utterance.onerror = (event) =>
+            console.error("❌ Speech error:", event.error, event);
+          utterance.onpause = () => console.log("⏸️ Speech paused");
+          utterance.onresume = () => console.log("▶️ Speech resumed");
+
+          console.log("Calling speechSynthesis.speak()...");
+          window.speechSynthesis.speak(utterance);
+
+          // Check if speaking
+          setTimeout(() => {
+            console.log("Is speaking?", window.speechSynthesis.speaking);
+            console.log("Is pending?", window.speechSynthesis.pending);
+            console.log("Is paused?", window.speechSynthesis.paused);
+          }, 200);
+        }, 250);
+      }
     },
     [
       soundEffect,

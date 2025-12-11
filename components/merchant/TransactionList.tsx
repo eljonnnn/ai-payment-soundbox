@@ -21,9 +21,7 @@ const EmptyState = () => (
     <h3 className="text-lg font-semibold text-gray-600 mb-2">
       No transactions yet
     </h3>
-    <p className="text-sm text-gray-500">
-      Waiting for customer payments...
-    </p>
+    <p className="text-sm text-gray-500">Waiting for customer payments...</p>
   </motion.div>
 );
 
@@ -49,8 +47,8 @@ const TransactionItem = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1">
           <div
-                ? "bg-linear-to-br from-green-500 to-green-600"
-                : "bg-linear-to-br from-blue-500 to-blue-600"
+            className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              isLargeAmount
                 ? "bg-gradient-to-br from-green-500 to-green-600"
                 : "bg-gradient-to-br from-blue-500 to-blue-600"
             }`}
@@ -101,7 +99,9 @@ const TransactionItem = ({
   );
 };
 
-export default function TransactionList({ transactions }: TransactionListProps) {
+export default function TransactionList({
+  transactions,
+}: TransactionListProps) {
   // Group transactions by date
   const groupedTransactions = transactions.reduce((groups, transaction) => {
     const date = new Date(transaction.createdAt).toLocaleDateString("en-PH", {
