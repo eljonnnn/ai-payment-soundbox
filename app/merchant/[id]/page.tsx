@@ -124,6 +124,33 @@ export default function MerchantSoundbox() {
     };
   }, []); // Run only once on mount
 
+  // Manual voice refresh function
+  const refreshVoices = useCallback(() => {
+    console.log("[Voice Loading] Manual refresh triggered");
+    // Force speech synthesis to wake up with user interaction
+    const utterance = new SpeechSynthesisUtterance("test");
+    window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.cancel();
+
+    // Load voices
+    const voices = window.speechSynthesis.getVoices();
+    console.log(
+      "[Voice Loading] Manual refresh found:",
+      voices.length,
+      "voices"
+    );
+
+    if (voices.length > 0) {
+      setAvailableVoices(voices);
+      const defaultVoice =
+        voices.find((v) => v.name === "Google US English") ||
+        voices.find((v) => v.lang === "en-US") ||
+        voices.find((v) => v.lang.startsWith("en")) ||
+        voices[0];
+      setSelectedVoice(defaultVoice);
+    }
+  }, []);
+
   // Generate QR code when merchant changes
   useEffect(() => {
     const paymentUrl = `${window.location.origin}/pay/${merchantId}`;
@@ -432,6 +459,7 @@ export default function MerchantSoundbox() {
         customMessage={customMessage}
         setCustomMessage={setCustomMessage}
         speakPayment={speakPayment}
+        refreshVoices={refreshVoices}
       />
     </>
   );

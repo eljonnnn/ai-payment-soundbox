@@ -31,6 +31,7 @@ interface AudioSettingsDrawerProps {
   customMessage: string;
   setCustomMessage: (message: string) => void;
   speakPayment: (amount: number, customerName: string) => void;
+  refreshVoices: () => void;
 }
 
 export default function AudioSettingsDrawer({
@@ -54,6 +55,7 @@ export default function AudioSettingsDrawer({
   customMessage,
   setCustomMessage,
   speakPayment,
+  refreshVoices,
 }: AudioSettingsDrawerProps) {
   const applyPreset = (presetName: string) => {
     const preset = VOICE_PRESETS.find((p) => p.name === presetName);
@@ -205,13 +207,21 @@ export default function AudioSettingsDrawer({
 
               {/* Voice Selection */}
               <div className="pt-6 border-t border-gray-200">
-                <label className="block text-sm font-medium text-blue-900 mb-2">
-                  System Voice
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-blue-900">
+                    System Voice
+                  </label>
+                  <button
+                    onClick={refreshVoices}
+                    className="text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 rounded hover:bg-blue-50"
+                  >
+                    🔄 Reload Voices
+                  </button>
+                </div>
                 {availableVoices.length === 0 ? (
                   <div className="w-full p-3 border border-gray-300 rounded-lg text-sm text-blue-600 bg-blue-50">
-                    Loading voices... If voices don't appear, try refreshing the
-                    page.
+                    Loading voices... Click &quot;Reload Voices&quot; button
+                    above to refresh.
                   </div>
                 ) : (
                   <select
