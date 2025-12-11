@@ -412,6 +412,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 ### 🎨 **New Components Created**
 
 1. **Merchant Switcher** (`components/merchant/MerchantSwitcher.tsx`):
+
    - Dropdown selector with animated transitions (framer-motion)
    - Fetches and displays all available merchants from database
    - Seamless switching without page reload
@@ -421,6 +422,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
    - Smooth hover states and animations
 
 2. **Quick Stats Cards** (`components/merchant/QuickStatsCards.tsx`):
+
    - Three animated stat cards with staggered entrance animations:
      - Total Revenue Today (green gradient, DollarSign icon)
      - Transactions Today (blue gradient, Receipt icon)
@@ -431,6 +433,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
    - TypeScript strict typing with React.ElementType
 
 3. **QR Code Section** (`components/merchant/QRCodeSection.tsx`):
+
    - Collapsible accordion-style section
    - Enhanced QR code display with padding and shadow
    - Multiple action buttons:
@@ -443,6 +446,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
    - Toast notifications for all actions
 
 4. **Transaction List** (`components/merchant/TransactionList.tsx`):
+
    - Grouped transactions by date
    - Animated slide-in for new transactions (framer-motion)
    - Special highlighting for large amounts (≥₱1000) with confetti emoji
@@ -469,27 +473,30 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 
 ### 🚀 **New Features**
 
-- **Seamless Merchant Switching**: 
+- **Seamless Merchant Switching**:
+
   - Change merchants instantly without page reload
   - Clears transactions and restops listening
   - Updates URL dynamically
   - Toast notification on successful switch
   - Stored in localStorage for persistence
 
-- **Real-time Stats Dashboard**: 
+- **Real-time Stats Dashboard**:
+
   - Calculates daily totals from transaction array
   - Updates automatically as new payments arrive
   - Shows revenue, count, and average transaction
   - Animated number displays
 
-- **Toast Notifications**: 
+- **Toast Notifications**:
+
   - Success, error, and info toasts
   - Custom icons and durations
   - Positioned top-right
   - Used for all user actions
   - Non-intrusive feedback
 
-- **Smooth Animations**: 
+- **Smooth Animations**:
   - Framer Motion for page transitions
   - Staggered animations for cards
   - Spring physics for drawer
@@ -516,6 +523,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 ### 🎯 **UI/UX Improvements**
 
 **Desktop-First Layout:**
+
 - Sticky header with GCash branding (blue gradient G logo)
 - Wide max-width container (max-w-7xl = 1280px)
 - Multi-column grid layouts (3 columns for stats, 2:1 for content)
@@ -523,12 +531,14 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 - Settings moved to slide-in drawer instead of inline
 
 **Header Design:**
+
 - Left: GCash logo + "GCash Merchant Soundbox" title
 - Right: Merchant switcher, Settings gear icon, Help icon
 - Sticky positioning with shadow
 - Clean white background with border-bottom
 
 **Activation Screen:**
+
 - Centered hero card (max-w-2xl)
 - Large icon (96px circle) with blue gradient
 - Clear call-to-action button
@@ -536,6 +546,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 - Link to configure settings first
 
 **Active Dashboard:**
+
 - Green status banner with live indicator (pulsing dot)
 - Stop listening button in banner
 - Stats cards in 3-column grid
@@ -544,6 +555,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 - Consistent padding and spacing
 
 **Toast Notifications:**
+
 - react-hot-toast integration
 - Positioned top-right
 - Custom durations per action type
@@ -567,7 +579,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 - **Gradients**: linear-to-br and linear-to-r for depth
 - **Shadows**: Subtle elevation (shadow-sm/md/lg)
 - **Border Radius**: Consistent rounded-xl (12px) and rounded-2xl (16px)
-- **Typography**: 
+- **Typography**:
   - Headings: Bold (700) in various sizes
   - Body: Regular (400) and medium (500)
   - Numbers: Bold for emphasis
@@ -575,6 +587,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 ### ✨ **Demo-Ready Features**
 
 1. **Instant Merchant Switching**:
+
    - Dropdown in header always visible
    - Click to see all merchants
    - Select new merchant → instant switch
@@ -583,6 +596,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
    - Transactions cleared
 
 2. **Independent Merchant State**:
+
    - Each merchant has own transaction history
    - Stats calculated per merchant
    - QR code regenerated per merchant
@@ -603,24 +617,28 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 ### 🔧 **Technical Implementation**
 
 **State Management:**
+
 - Merchant ID stored in component state
 - Transactions array managed locally
 - Settings state preserved during switches
 - localStorage for merchant persistence
 
 **Real-time Subscription:**
+
 - Channel recreated when merchant changes
 - Old subscription properly unsubscribed
 - Filter by merchantId in Supabase query
 - Toast on subscription errors
 
 **Animation Strategy:**
+
 - AnimatePresence for enter/exit
 - Layout animations for reordering
 - Staggered delays for sequential items
 - Spring physics for natural feel
 
 **URL Management:**
+
 - window.history.replaceState for URL updates
 - No page reload or navigation
 - Maintains browser history cleanliness
@@ -629,6 +647,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 ### 📝 **Files Modified/Created**
 
 **Created:**
+
 - `app/api/merchants/list/route.ts`
 - `lib/merchant-utils.ts`
 - `components/merchant/MerchantSwitcher.tsx`
@@ -638,6 +657,7 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 - `components/merchant/AudioSettingsDrawer.tsx`
 
 **Modified:**
+
 - `app/merchant/[id]/page.tsx` - Complete redesign
   - Removed old UI (single-column layout)
   - Added desktop-optimized layout
