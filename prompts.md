@@ -287,6 +287,106 @@ lets add this
 
 ---
 
+## Enhancement: Customer Wallet Interface
+
+**Date:** December 12, 2025
+
+**Prompt:**
+
+```
+build the customer wallet
+```
+
+**Outcome:** Implemented a comprehensive customer wallet interface mimicking GCash design:
+
+1. **Main Wallet Dashboard** (`/wallet`):
+
+   - Header with GCash branding and Help button
+   - User switcher component with dropdown
+   - Tab navigation (Wallet, Save, Borrow, Insure)
+   - Balance display with show/hide toggle
+   - Action buttons grid (Send, Load, Transfer, Bills, GSave, Cards, A+ Rewards, Commute)
+   - Explore Services section (US Account, GInsure, Food Hub, Travel, GForest)
+   - Shortcuts section (Pay QR, Scan to Pay, Bank Transfer, etc.)
+   - Promo carousel
+   - Referral section
+   - New features section
+   - Transactions summary with View All link
+
+2. **QR Code Scanner** (`/wallet/qr`):
+
+   - Live camera QR code scanning using `html5-qrcode` library
+   - Real-time QR detection with visual feedback
+   - Manual merchant ID entry fallback
+   - Camera permission handling
+   - Supports multiple QR code formats (merchant ID, /pay/merchantId, full URLs)
+   - Auto-navigation to payment page after successful scan
+   - Tips section for better scanning
+   - Clean dark UI optimized for camera usage
+
+3. **Supporting Pages**:
+
+   - `/inbox` - Inbox page (placeholder)
+   - `/transactions` - Transaction history page (placeholder)
+   - `/profile` - Profile settings page (placeholder)
+
+4. **Reusable Components**:
+
+   - `UserSwitcher.tsx` - User profile switcher with dropdown
+     - Shows current user avatar, name, and balance
+     - Dropdown to switch between 3 demo users
+     - Persists selection to localStorage
+     - Smooth animations and transitions
+   - `BottomNavigation.tsx` - Navigation bar with 5 tabs
+     - Home, Inbox, QR, Transactions, Profile
+     - Active state indication
+     - Icon-based navigation
+     - Responsive design
+
+5. **Wallet Users System** (`lib/wallet-users.ts`):
+   - 3 demo users: Juan dela Cruz, Maria Santos, Pedro Reyes
+   - User data structure with id, name, balance, avatar
+   - localStorage persistence utilities
+   - Default user fallback
+
+**New Dependencies:**
+
+- `html5-qrcode` - QR code scanning library
+- `lucide-react` - Icon library
+
+**Files Created:**
+
+- `app/wallet/page.tsx` - Main wallet dashboard
+- `app/wallet/qr/page.tsx` - QR scanner page
+- `app/inbox/page.tsx` - Inbox placeholder
+- `app/transactions/page.tsx` - Transactions placeholder
+- `app/profile/page.tsx` - Profile placeholder
+- `components/wallet/UserSwitcher.tsx` - User switcher component
+- `components/wallet/BottomNavigation.tsx` - Bottom navigation component
+- `lib/wallet-users.ts` - Wallet user data and utilities
+
+**Technical Highlights:**
+
+- Client-side QR scanning with camera access
+- localStorage for user preference persistence
+- Responsive mobile-first design
+- Smooth animations and transitions
+- Error handling for camera permissions
+- Clean component architecture with reusable parts
+- TypeScript type safety throughout
+- Tailwind CSS for consistent styling
+
+**User Experience Features:**
+
+- One-tap user switching
+- Quick access to QR scanner from bottom nav
+- Visual feedback on active navigation items
+- Graceful fallback to manual entry if camera fails
+- Clean, familiar GCash-inspired interface
+- Fast navigation between wallet features
+
+---
+
 ## Next Steps
 
 <!-- Add future prompts here as development progresses -->
