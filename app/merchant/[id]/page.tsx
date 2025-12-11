@@ -3,7 +3,7 @@
 import { supabase } from "@/lib/supabase";
 import { REALTIME_SUBSCRIBE_STATES } from "@supabase/supabase-js";
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { playSoundEffect, type SoundEffect } from "@/lib/sounds";
 import { generateQRCode } from "@/lib/qrcode";
 import {
@@ -22,6 +22,7 @@ import { calculateStats, type Transaction } from "@/lib/merchant-utils";
 
 export default function MerchantSoundbox() {
   const params = useParams();
+  const router = useRouter();
   const initialMerchantId = params.id as string;
 
   const [merchantId, setMerchantId] = useState(initialMerchantId);
@@ -91,7 +92,7 @@ export default function MerchantSoundbox() {
     setMerchantId(newMerchantId);
 
     // Update URL without page reload
-    window.history.replaceState(null, "", `/merchant/${newMerchantId}`);
+    router.replace(`/merchant/${newMerchantId}`);
 
     toast.success("Merchant switched successfully!");
   };

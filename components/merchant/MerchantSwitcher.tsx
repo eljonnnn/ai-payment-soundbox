@@ -28,7 +28,18 @@ export default function MerchantSwitcher({
     try {
       const response = await fetch("/api/merchants/list");
       const data = await response.json();
-      setMerchants(data.merchants || []);
+      const merchantList = data.merchants || [];
+      setMerchants(merchantList);
+
+      // Auto-select first merchant if no merchant is currently selected or if current merchant is invalid
+      if (
+        merchantList.length > 0 &&
+        (!currentMerchantId || currentMerchantId === "undefined")
+      ) {
+        const firstMerchantId = merchantList[0].id;
+        setStoredMerchantId(firstMerchantId);
+        onMerchantChange(firstMerchantId);
+      }
     } catch (error) {
       console.error("Failed to fetch merchants:", error);
     } finally {
