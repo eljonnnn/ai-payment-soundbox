@@ -60,9 +60,13 @@ export default function MerchantSoundbox() {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       setAvailableVoices(voices);
-      // Set default to first English voice
+      // Set default to Google US English voice
       const defaultVoice =
-        voices.find((v) => v.lang.startsWith("en")) || voices[0];
+        voices.find(
+          (v) => v.name === "Google US English" && v.lang === "en-US"
+        ) ||
+        voices.find((v) => v.lang.startsWith("en")) ||
+        voices[0];
       setSelectedVoice(defaultVoice);
     };
 

@@ -205,7 +205,7 @@ export default function AudioSettingsDrawer({
 
               {/* Voice Selection */}
               <div className="pt-6 border-t border-gray-200">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
                   System Voice
                 </label>
                 <select
