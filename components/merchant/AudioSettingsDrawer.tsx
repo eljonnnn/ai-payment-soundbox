@@ -208,22 +208,34 @@ export default function AudioSettingsDrawer({
                 <label className="block text-sm font-medium text-blue-900 mb-2">
                   System Voice
                 </label>
-                <select
-                  value={selectedVoice?.name || ""}
-                  onChange={(e) => {
-                    const voice = availableVoices.find(
-                      (v) => v.name === e.target.value
-                    );
-                    setSelectedVoice(voice || null);
-                  }}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {availableVoices.map((voice) => (
-                    <option key={voice.name} value={voice.name}>
-                      {voice.name} ({voice.lang})
-                    </option>
-                  ))}
-                </select>
+                {availableVoices.length === 0 ? (
+                  <div className="w-full p-3 border border-gray-300 rounded-lg text-sm text-blue-600 bg-blue-50">
+                    Loading voices... If voices don't appear, try refreshing the
+                    page.
+                  </div>
+                ) : (
+                  <select
+                    value={selectedVoice?.name || ""}
+                    onChange={(e) => {
+                      const voice = availableVoices.find(
+                        (v) => v.name === e.target.value
+                      );
+                      setSelectedVoice(voice || null);
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded-lg text-sm text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {availableVoices.map((voice) => (
+                      <option key={voice.name} value={voice.name}>
+                        {voice.name} ({voice.lang})
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {availableVoices.length > 0 && (
+                  <p className="text-xs text-blue-600 mt-2">
+                    {availableVoices.length} voices available
+                  </p>
+                )}
               </div>
 
               {/* Message Templates Section */}

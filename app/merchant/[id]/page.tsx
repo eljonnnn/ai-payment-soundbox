@@ -55,12 +55,27 @@ export default function MerchantSoundbox() {
   // Load available voices
   useEffect(() => {
     let isSubscribed = true;
+    let retryCount = 0;
+    const maxRetries = 10;
 
     const loadVoices = () => {
+      // Force speech synthesis to initialize by creating and canceling an utterance
+      const utterance = new SpeechSynthesisUtterance("");
+      window.speechSynthesis.speak(utterance);
+      window.speechSynthesis.cancel();
+
       const voices = window.speechSynthesis.getVoices();
-      console.log("Voices loaded:", voices.length);
+      console.log(
+        `[Voice Loading] Attempt ${retryCount + 1}: Found ${
+          voices.length
+        } voices`
+      );
 
       if (voices.length > 0 && isSubscribed) {
+        console.log(
+          "[Voice Loading] Successfully loaded voices:",
+          voices.map((v) => v.name)
+        );
         setAvailableVoices(voices);
 
         // Only set default voice if not already set
@@ -73,17 +88,21 @@ export default function MerchantSoundbox() {
             voices.find((v) => v.lang === "en-US") ||
             voices.find((v) => v.lang.startsWith("en")) ||
             voices[0];
+          console.log(
+            "[Voice Loading] Default voice set to:",
+            defaultVoice?.name
+          );
           return defaultVoice;
         });
+      } else if (retryCount < maxRetries) {
+        retryCount++;
+        setTimeout(loadVoices, 200 * retryCount); // Increasing delays
       }
     };
 
-    // Try loading voices immediately
-    loadVoices();
-
     // Set up event listener for when voices are loaded
     const handleVoicesChanged = () => {
-      console.log("Voices changed event fired");
+      console.log("[Voice Loading] voiceschanged event fired");
       loadVoices();
     };
 
@@ -92,16 +111,12 @@ export default function MerchantSoundbox() {
       handleVoicesChanged
     );
 
-    // Aggressive fallback: retry multiple times
-    const timer1 = setTimeout(loadVoices, 100);
-    const timer2 = setTimeout(loadVoices, 500);
-    const timer3 = setTimeout(loadVoices, 1000);
+    // Initial load with small delay to let browser initialize
+    const initialTimer = setTimeout(loadVoices, 50);
 
     return () => {
       isSubscribed = false;
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
+      clearTimeout(initialTimer);
       window.speechSynthesis.removeEventListener(
         "voiceschanged",
         handleVoicesChanged
