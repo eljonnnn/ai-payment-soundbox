@@ -42,7 +42,7 @@ export default async function PayPage({
             Merchant not found
           </h1>
           <p className="text-gray-600 mt-2">
-            The merchant you're looking for doesn't exist.
+            The merchant you&apos;re looking for doesn&apos;t exist.
           </p>
         </div>
       </div>

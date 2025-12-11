@@ -113,7 +113,8 @@ export default function Home() {
               </Link>
             </div>
             <p className="text-xs text-gray-500 mt-4">
-              (Replace "test" with actual merchant IDs from seed output)
+              (Replace &ldquo;test&rdquo; with actual merchant IDs from seed
+              output)
             </p>
           </div>
 

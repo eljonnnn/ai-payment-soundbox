@@ -1,6 +1,13 @@
 // Sound effects for payment notifications
+
+// Helper to get AudioContext with fallback
+const getAudioContext = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return new (window.AudioContext || (window as any).webkitAudioContext)();
+};
+
 export const playSuccessSound = () => {
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const audioContext = getAudioContext();
   
   // Create a pleasant two-tone chime
   const playTone = (frequency: number, startTime: number, duration: number) => {
@@ -26,7 +33,7 @@ export const playSuccessSound = () => {
 };
 
 export const playCashRegisterSound = () => {
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const audioContext = getAudioContext();
   
   // Simulate cash register "cha-ching"
   const playTone = (frequency: number, startTime: number, duration: number) => {
@@ -53,7 +60,7 @@ export const playCashRegisterSound = () => {
 };
 
 export const playBellSound = () => {
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const audioContext = getAudioContext();
   
   // Simple bell sound
   const oscillator = audioContext.createOscillator();

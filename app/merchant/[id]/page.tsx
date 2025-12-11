@@ -1,7 +1,8 @@
 "use client";
 
 import { supabase } from "@/lib/supabase";
-import { useEffect, useState } from "react";
+import { REALTIME_SUBSCRIBE_STATES } from "@supabase/supabase-js";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { playSoundEffect, type SoundEffect } from "@/lib/sounds";
 import { generateQRCode } from "@/lib/qrcode";
@@ -9,7 +10,6 @@ import {
   VOICE_PRESETS,
   MESSAGE_TEMPLATES,
   formatMessage,
-  type VoicePreset,
   type MessageTemplate,
 } from "@/lib/voice-presets";
 import Image from "next/image";
@@ -115,24 +115,35 @@ export default function MerchantSoundbox() {
     setSelectedPreset(presetName);
   };
 
-  const speakPayment = (amount: number, customerName: string) => {
-    // Play sound effect first
-    playSoundEffect(soundEffect);
+  const speakPayment = useCallback(
+    (amount: number, customerName: string) => {
+      // Play sound effect first
+      playSoundEffect(soundEffect);
 
-    // Format message using selected template
-    const message =
-      selectedTemplate.id === "custom"
-        ? formatMessage(customMessage, amount, customerName)
-        : formatMessage(selectedTemplate.template, amount, customerName);
+      // Format message using selected template
+      const message =
+        selectedTemplate.id === "custom"
+          ? formatMessage(customMessage, amount, customerName)
+          : formatMessage(selectedTemplate.template, amount, customerName);
 
-    const utterance = new SpeechSynthesisUtterance(message);
-    if (selectedVoice) utterance.voice = selectedVoice;
-    utterance.rate = voiceRate;
-    utterance.pitch = voicePitch;
-    utterance.volume = voiceVolume;
-    utterance.lang = selectedTemplate.language;
-    window.speechSynthesis.speak(utterance);
-  };
+      const utterance = new SpeechSynthesisUtterance(message);
+      if (selectedVoice) utterance.voice = selectedVoice;
+      utterance.rate = voiceRate;
+      utterance.pitch = voicePitch;
+      utterance.volume = voiceVolume;
+      utterance.lang = selectedTemplate.language;
+      window.speechSynthesis.speak(utterance);
+    },
+    [
+      soundEffect,
+      selectedTemplate,
+      customMessage,
+      selectedVoice,
+      voiceRate,
+      voicePitch,
+      voiceVolume,
+    ]
+  );
 
   useEffect(() => {
     if (!isListening) return;
@@ -162,7 +173,7 @@ export default function MerchantSoundbox() {
       )
       .subscribe((status) => {
         console.log("Subscription status:", status);
-        if (status === "SUBSCRIPTION_ERROR") {
+        if (status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR) {
           setError("Failed to connect to realtime updates");
         }
       });
@@ -171,7 +182,7 @@ export default function MerchantSoundbox() {
       console.log("Unsubscribing from channel");
       channel.unsubscribe();
     };
-  }, [isListening, merchantId]);
+  }, [isListening, merchantId, speakPayment]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6">
@@ -303,7 +314,7 @@ export default function MerchantSoundbox() {
                       ) : (
                         <div className="mt-2 p-3 bg-white rounded border border-gray-200">
                           <p className="text-sm text-gray-600 italic">
-                            "{selectedTemplate.template}"
+                            &ldquo;{selectedTemplate.template}&rdquo;
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             Language: {selectedTemplate.language}
@@ -432,7 +443,7 @@ export default function MerchantSoundbox() {
                         🔊 Test Voice with Current Settings
                       </button>
                       <p className="text-xs text-gray-500 text-center mt-2">
-                        Preview: "
+                        Preview: &ldquo;
                         {formatMessage(
                           selectedTemplate.id === "custom"
                             ? customMessage
@@ -440,7 +451,7 @@ export default function MerchantSoundbox() {
                           100,
                           "Test Customer"
                         )}
-                        "
+                        &rdquo;
                       </p>
                     </div>
                   </div>
