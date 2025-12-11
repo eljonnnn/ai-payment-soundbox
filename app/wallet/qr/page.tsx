@@ -3,16 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Html5Qrcode } from "html5-qrcode";
-import { Smartphone, Lightbulb, Target, FileText } from "lucide-react";
+import { Plus, Upload, Info } from "lucide-react";
 import Link from "next/link";
+import BottomNavigation from "@/components/wallet/BottomNavigation";
 
 export default function QRScannerPage() {
   const router = useRouter();
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [manualEntry, setManualEntry] = useState(false);
-  const [merchantId, setMerchantId] = useState("");
 
   useEffect(() => {
     startScanner();
@@ -32,7 +31,7 @@ export default function QRScannerPage() {
         { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: { width: 250, height: 250 },
+          qrbox: { width: 280, height: 280 },
         },
         onScanSuccess,
         onScanFailure
@@ -41,10 +40,7 @@ export default function QRScannerPage() {
       setIsScanning(true);
     } catch (err) {
       console.error("Camera error:", err);
-      setError(
-        "Unable to access camera. Please check permissions or enter merchant ID manually."
-      );
-      setManualEntry(true);
+      setError("Unable to access camera. Please check permissions.");
     }
   };
 
@@ -64,7 +60,6 @@ export default function QRScannerPage() {
     stopScanner();
 
     // Parse merchant ID from QR code
-    // Supports: merchantId, /pay/merchantId, or full URL
     let parsedId = decodedText;
 
     if (decodedText.includes("/pay/")) {
@@ -79,133 +74,119 @@ export default function QRScannerPage() {
     // Silent - don't log every scan attempt
   };
 
-  const handleManualSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (merchantId.trim()) {
-      router.push(`/pay/${merchantId.trim()}`);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
+    <div className="fixed inset-0 bg-[#0066FF] flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700">
-        <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
-          <Link
-            href="/wallet"
-            className="text-white hover:text-gray-300 transition"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </Link>
-          <h1 className="text-white text-lg font-semibold">Scan QR Code</h1>
-          <button
-            onClick={() => setManualEntry(!manualEntry)}
-            className="text-blue-400 hover:text-blue-300 text-sm font-medium"
-          >
-            {manualEntry ? "Camera" : "Manual"}
+      <header className="relative z-20 bg-[#0066FF] safe-top">
+        <div className="w-full px-4 py-3 flex items-center justify-between">
+          <div className="w-6"></div>
+          <h1 className="text-white text-lg font-semibold">QR Reader</h1>
+          <button className="text-white">
+            <Info className="w-6 h-6" />
           </button>
         </div>
       </header>
 
       {/* Scanner View */}
-      <main className="flex-1 flex flex-col items-center justify-center p-4">
-        {!manualEntry ? (
-          <div className="w-full max-w-md">
-            <div
-              id="qr-reader"
-              className="rounded-xl overflow-hidden shadow-2xl"
-            />
-            
-            {error && (
-              <div className="mt-4 bg-red-500/20 border border-red-500 text-red-300 p-4 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
+      <main className="flex-1 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div id="qr-reader" className="w-full h-full" />
+        </div>
 
-            <div className="mt-6 text-center">
-              <p className="text-white text-sm mb-2">
-                Position the QR code within the frame
-              </p>
-              <p className="text-gray-400 text-xs">
-                The scan will happen automatically
-              </p>
-            </div>
+        {/* Dark overlay for better visibility */}
+        <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
+
+        {/* Scanning Frame Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none pt-0 pb-48">
+          <div className="relative w-64 h-64 sm:w-72 sm:h-72">
+            {/* Corner brackets */}
+            <div className="absolute top-0 left-0 w-12 h-12 sm:w-16 sm:h-16 border-t-4 border-l-4 border-blue-400 rounded-tl-lg"></div>
+            <div className="absolute top-0 right-0 w-12 h-12 sm:w-16 sm:h-16 border-t-4 border-r-4 border-blue-400 rounded-tr-lg"></div>
+            <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 border-b-4 border-l-4 border-blue-400 rounded-bl-lg"></div>
+            <div className="absolute bottom-0 right-0 w-12 h-12 sm:w-16 sm:h-16 border-b-4 border-r-4 border-blue-400 rounded-br-lg"></div>
           </div>
-        ) : (
-          <div className="w-full max-w-md bg-gray-800 rounded-xl p-6 shadow-2xl">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                <FileText className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-white text-lg font-semibold mb-1">
-                Enter Merchant ID
-              </h2>
-              <p className="text-gray-400 text-sm">
-                Manually enter the merchant&apos;s ID
-              </p>
-            </div>
+        </div>
 
-            <form onSubmit={handleManualSubmit}>
-              <input
-                type="text"
-                value={merchantId}
-                onChange={(e) => setMerchantId(e.target.value)}
-                placeholder="e.g., merchant-id-123"
-                className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 outline-none mb-4"
-              />
-              <button
-                type="submit"
-                disabled={!merchantId.trim()}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition"
-              >
-                Continue to Payment
-              </button>
-            </form>
-
-            {error && (
-              <div className="mt-4 bg-yellow-500/20 border border-yellow-500 text-yellow-300 p-3 rounded-lg text-xs">
-                Camera not available. Please enter merchant ID manually.
+        {/* Bottom Controls */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 pb-20 safe-bottom">
+          {/* Action Buttons */}
+          <div className="w-full px-4 flex justify-center gap-12 sm:gap-16 mb-4">
+            <button className="flex flex-col items-center text-white">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 border border-white/30 active:scale-95 transition-transform">
+                <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
-            )}
+              <span className="text-xs sm:text-sm font-medium">
+                Generate QR
+              </span>
+            </button>
+            <button className="flex flex-col items-center text-white">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 border border-white/30 active:scale-95 transition-transform">
+                <Upload className="w-7 h-7 sm:w-8 sm:h-8" />
+              </div>
+              <span className="text-xs sm:text-sm font-medium">Upload QR</span>
+            </button>
           </div>
-        )}
 
-        {/* Tips */}
-        <div className="mt-8 max-w-md">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="text-gray-400">
-              <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Smartphone className="w-5 h-5" />
+          {/* Alipay+ Banner */}
+          <div className="w-full px-4">
+            <div className="bg-black/30 backdrop-blur-sm rounded-2xl border border-white/20 p-3 sm:p-4">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5">
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
+                    <circle cx="12" cy="12" r="3" fill="currentColor" />
+                  </svg>
+                </div>
+                <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
+                  <span className="text-white text-xs sm:text-sm font-medium">
+                    Pay abroad with
+                  </span>
+                  <span className="text-white text-base sm:text-lg font-bold whitespace-nowrap">
+                    支|Alipay+
+                  </span>
+                </div>
               </div>
-              <p className="text-xs">Hold phone steady</p>
-            </div>
-            <div className="text-gray-400">
-              <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Lightbulb className="w-5 h-5" />
+
+              {/* Country Flags */}
+              <div className="flex justify-center gap-2 sm:gap-3">
+                <div className="w-10 h-7 sm:w-12 sm:h-8 bg-white rounded flex items-center justify-center text-lg sm:text-xl">
+                  🇯🇵
+                </div>
+                <div className="w-10 h-7 sm:w-12 sm:h-8 bg-white rounded flex items-center justify-center text-lg sm:text-xl">
+                  🇰🇷
+                </div>
+                <div className="w-10 h-7 sm:w-12 sm:h-8 bg-white rounded flex items-center justify-center text-lg sm:text-xl">
+                  🇮🇹
+                </div>
+                <div className="w-10 h-7 sm:w-12 sm:h-8 bg-white rounded flex items-center justify-center text-lg sm:text-xl">
+                  🇸🇬
+                </div>
+                <div className="w-10 h-7 sm:w-12 sm:h-8 bg-white rounded flex items-center justify-center text-lg sm:text-xl">
+                  🇩🇪
+                </div>
               </div>
-              <p className="text-xs">Ensure good lighting</p>
-            </div>
-            <div className="text-gray-400">
-              <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Target className="w-5 h-5" />
-              </div>
-              <p className="text-xs">Center QR code</p>
             </div>
           </div>
         </div>
+
+        {error && (
+          <div className="absolute top-4 left-4 right-4 z-20 bg-red-500/90 backdrop-blur-sm border border-red-300 text-white p-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
       </main>
+
+      {/* Bottom Navigation */}
+      <div className="relative z-20">
+        <BottomNavigation />
+      </div>
     </div>
   );
 }
