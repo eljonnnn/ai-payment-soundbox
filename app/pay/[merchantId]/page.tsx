@@ -27,7 +27,7 @@ export default function PayPage() {
       .then((res) => res.json())
       .then((data) => {
         const foundMerchant = data.merchants?.find(
-          (m: any) => m.id === merchantId
+          (m: { id: string }) => m.id === merchantId
         );
         setMerchant(foundMerchant || null);
         setLoading(false);
