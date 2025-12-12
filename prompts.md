@@ -695,6 +695,275 @@ yes but for the merchant ui it will be a desktop responsive only the wallet is t
 
 ---
 
+## Enhancement: Landing Page UI Revamp
+
+**Date:** December 12, 2025
+
+**Prompt:**
+
+```
+now that we finished revamping the ui of the merchant and wallet lets revamp the ui of the landing page
+
+so as a senior gcash web developer engineer let revamp the landing page
+```
+
+**Follow-up:**
+
+```
+Start implementation
+```
+
+**Outcome:** Complete redesign of the landing page from documentation-focused to a polished, professional portal matching the merchant and wallet design system:
+
+### 🎨 **Transformation Overview**
+
+**Before:** Basic documentation page with emoji-heavy design, purple gradients, setup instructions prominently displayed, tech stack list, and generic CTAs.
+
+**After:** Professional, animated marketing portal with GCash branding, role-based navigation, feature showcase, and developer documentation hidden by default.
+
+### ✨ **New Landing Page Features**
+
+1. **Professional Header**:
+
+   - Sticky navigation bar with white background and shadow
+   - GCash blue gradient logo (matching merchant page)
+   - Clear branding: "GCash Payment Soundbox"
+   - Right-aligned action buttons: "Wallet" and "Merchant Portal"
+   - Consistent with merchant page header design
+
+2. **Hero Section**:
+
+   - Large, centered max-width content (max-w-4xl)
+   - Badge: "Powered by AI & Real-Time Technology" with Sparkles icon
+   - Gradient headline: "Transform Your Payment Experience with Sound"
+   - Clear value proposition in large text
+   - Dual call-to-action buttons:
+     - Primary: "Open Merchant Portal" (blue gradient)
+     - Secondary: "Try Customer Wallet" (white with border)
+   - Quick stats grid (3 columns):
+     - <1s Notification Speed
+     - 99.9% Uptime
+     - 24/7 Always On
+   - Framer Motion animations with staggered entrance
+
+3. **Features Grid Section**:
+
+   - "Everything You Need to Manage Payments" heading
+   - 6 feature cards in responsive grid (3 columns on desktop)
+   - Each card with:
+     - Gradient-colored icon circle (blue, purple, green, orange, pink, indigo)
+     - Lucide React icons (Volume2, Zap, Shield, Smartphone, TrendingUp, Users)
+     - Bold title and description
+     - Hover effects with scale and shadow transitions
+   - Features highlighted:
+     - Real-Time Audio Alerts
+     - Lightning Fast
+     - Secure & Reliable
+     - Mobile Optimized
+     - Analytics Dashboard
+     - Multi-Merchant Support
+   - Scroll-triggered fade-in animations
+
+4. **Role Selection Cards**:
+
+   - "Choose Your Experience" section
+   - Two large gradient cards (blue and purple)
+   - Merchant Soundbox card (blue):
+     - Store icon
+     - Feature checklist with Check icons
+     - "Access Portal" CTA button
+     - Decorative background circles
+   - Customer Wallet card (purple):
+     - Wallet icon
+     - Feature checklist
+     - "Open Wallet" CTA button
+     - Mirror design of merchant card
+   - Hover scale effects (1.03x)
+   - Slide-in animations from left/right
+
+5. **Tech Stack Section**:
+
+   - "Built with Modern Technology" heading
+   - White card with subtle shadow
+   - Pill badges for each technology:
+     - Next.js 16, React 19, Prisma ORM
+     - Supabase Realtime, PostgreSQL
+     - Tailwind CSS v4, TypeScript
+     - Framer Motion, Web Speech API
+   - Hover effects on badges (scale + color change)
+   - Updated to reflect latest versions
+
+6. **Collapsible Setup Guide**:
+
+   - Dark gradient card (gray-800 to gray-900)
+   - "Developer Setup Guide" with Sparkles icon
+   - Click to expand/collapse functionality
+   - Chevron rotation animation
+   - When expanded:
+     - Numbered steps with blue circular badges
+     - Four setup steps clearly laid out
+     - Code snippets with dark background
+     - Clean, organized presentation
+   - Hidden by default (improving focus on product features)
+
+7. **Professional Footer**:
+   - White background with top border
+   - Left: GCash logo + copyright notice
+   - Right: "Built with ❤️ using Next.js & Supabase"
+   - Clean, minimal design
+
+### 🎨 **Design System Applied**
+
+**Colors:**
+
+- Primary: Blue gradient (from-blue-600 to-blue-700)
+- Background: Light gray gradient (from-gray-50 to-gray-100)
+- White cards with subtle borders (border-gray-100)
+- Feature card gradients: blue, purple, green, orange, pink, indigo
+- Dark setup section: gray-800 to gray-900
+
+**Typography:**
+
+- Headings: 2xl, 3xl, 5xl, 6xl with bold weight (700-900)
+- Body text: lg, xl with regular weight (400)
+- Text hierarchy: gray-900 (headings), gray-600 (body), gray-500 (captions)
+- Consistent line-height and letter-spacing
+
+**Spacing:**
+
+- Max-width container: max-w-7xl (1280px)
+- Section padding: px-8 py-16
+- Card padding: p-6, p-8
+- Consistent gaps: gap-3, gap-4, gap-6, gap-8
+
+**Components:**
+
+- Rounded corners: rounded-xl (12px), rounded-2xl (16px)
+- Shadow hierarchy: shadow-sm, shadow-lg, shadow-xl, shadow-2xl
+- Hover transitions: scale-105, scale-103, scale-102
+- All transitions: duration-200
+
+**Icons:**
+
+- Lucide React throughout (no emojis)
+- Consistent sizing: w-5 h-5 (buttons), w-6 h-6 (features), w-16 h-16 (heroes)
+- Icons in colored circles with gradients
+
+**Animations:**
+
+- Framer Motion for all animations
+- Fade-in with y-offset on scroll
+- Staggered delays for grid items
+- Hover scale and shadow effects
+- Smooth height animations for collapse/expand
+- AnimatePresence for conditional rendering
+
+### 🚀 **Technical Implementation**
+
+**Dependencies Used:**
+
+- `framer-motion` - All animations
+- `lucide-react` - Icon library
+- `next/link` - Navigation
+- `useState` - Collapse state management
+
+**Animation Patterns:**
+
+```typescript
+// Initial fade-in
+initial={{ opacity: 0, y: 20 }}
+animate={{ opacity: 1, y: 0 }}
+transition={{ duration: 0.6 }}
+
+// Scroll-triggered animations
+whileInView={{ opacity: 1, y: 0 }}
+viewport={{ once: true }}
+
+// Staggered grid animations
+transition={{ delay: index * 0.1 }}
+
+// Hover effects
+whileHover={{ scale: 1.02, y: -4 }}
+```
+
+**Responsive Design:**
+
+- Mobile-first approach with `md:` and `lg:` breakpoints
+- Grid columns adapt: 1 column mobile → 2 columns md → 3 columns lg
+- Flex direction changes: flex-col → sm:flex-row
+- Font sizes scale down on mobile
+
+### 📊 **Content Strategy**
+
+**From Documentation-Heavy to Marketing-First:**
+
+**Old Approach:**
+
+- Setup instructions front and center
+- Tech stack as main feature
+- Route documentation visible
+- Demo links buried
+- No clear user path
+
+**New Approach:**
+
+- Value proposition leads
+- User benefits highlighted
+- Clear role selection
+- Features showcased visually
+- Setup hidden but accessible
+- Strong CTAs throughout
+
+**User Journey:**
+
+1. Land on page → See value prop immediately
+2. Quick stats build credibility
+3. Feature cards explain capabilities
+4. Role cards offer clear next steps
+5. Tech stack shows modern foundation
+6. Setup available for developers
+
+### 🎯 **Key Improvements**
+
+1. **Visual Consistency**: Matches merchant and wallet design systems
+2. **Professional Polish**: Eliminated emojis, added Lucide icons
+3. **Clear Navigation**: Dual entry points for merchant and wallet
+4. **Better UX**: Setup instructions hidden by default
+5. **Animations**: Smooth, professional motion throughout
+6. **Branding**: Consistent GCash blue gradient and logo
+7. **Content Hierarchy**: Features before documentation
+8. **Modern Design**: Gradients, shadows, hover effects
+9. **Accessibility**: Proper heading structure, keyboard navigation
+10. **Performance**: Optimized animations, lazy loading
+
+### 📁 **Files Modified**
+
+- `app/page.tsx` - Complete rewrite (679 lines)
+  - Changed from static to "use client"
+  - Added Framer Motion animations
+  - Implemented collapsible setup section
+  - Created feature grid with data array
+  - Built role selection cards
+  - Added professional header and footer
+  - Integrated Lucide icons throughout
+
+### ✅ **Design Goals Achieved**
+
+- ✅ Consistent with merchant and wallet UI
+- ✅ Professional, polished appearance
+- ✅ Clear value proposition
+- ✅ Engaging animations
+- ✅ Role-based navigation
+- ✅ Developer-friendly (setup accessible but not intrusive)
+- ✅ Modern GCash branding
+- ✅ Responsive design
+- ✅ Fast page load
+- ✅ Accessible interface
+
+**Result:** Production-ready landing page that serves as an effective portal for the application, showcasing features while providing clear paths for both merchant and customer experiences. The page now matches the quality and design standards of the revamped merchant and wallet interfaces.
+
+---
+
 ## Next Steps
 
 <!-- Add future prompts here as development progresses -->

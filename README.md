@@ -1,22 +1,58 @@
-# Payment Soundbox MVP 🔊
+# GCash Payment Soundbox 🔊
 
-Real-time payment notifications with text-to-speech for merchants. Built with Next.js 15, Prisma, and Supabase Realtime.
+A modern, real-time payment notification system with intelligent voice announcements for merchants. Built with Next.js 16, Prisma, and Supabase Realtime.
 
-## 🎯 Features
+![Payment Soundbox](https://img.shields.io/badge/Next.js-16-black?style=flat&logo=next.js) ![React](https://img.shields.io/badge/React-19-blue?style=flat&logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat&logo=typescript) ![Tailwind](https://img.shields.io/badge/Tailwind-v4-38bdf8?style=flat&logo=tailwind-css)
 
-- **Instant Payment Notifications**: Merchants receive real-time audio alerts when customers make payments
-- **Text-to-Speech Announcements**: Automatic voice announcements for payment amount and customer name
-- **Mock Customer Wallet**: Simple payment interface for testing
-- **Hybrid Database Strategy**: Prisma for server-side writes, Supabase for client-side realtime subscriptions
-- **Row Level Security**: Defense-in-depth security with RLS policies
+## ✨ Overview
+
+GCash Payment Soundbox is a production-ready payment notification system that provides merchants with instant audio alerts when customers complete transactions. With a professional desktop interface for merchants and a mobile-optimized wallet for customers, the application demonstrates the power of real-time technology in fintech.
+
+## 🎯 Key Features
+
+### 🔊 Merchant Soundbox (Desktop)
+
+- **Real-Time Audio Notifications**: Sub-second payment alerts with customizable voice announcements
+- **Multi-Merchant Support**: Seamlessly switch between merchant accounts without page reload
+- **Customizable Voice Settings**: 6 voice presets (Professional, Friendly, Excited, Calm, Robotic, Custom)
+- **Multi-Language Templates**: English, Tagalog, and Spanish message templates
+- **Sound Effects**: Chime, Bell, and Cash Register sound options
+- **Live Analytics Dashboard**: Real-time revenue, transaction count, and averages
+- **QR Code Generation**: Instant QR code creation with download, share, and copy features
+- **Transaction History**: Animated transaction list with date grouping
+- **Audio Settings Drawer**: Comprehensive voice and sound customization panel
+
+### 💳 Customer Wallet (Mobile)
+
+- **GCash-Inspired Interface**: Familiar mobile-first design
+- **QR Code Scanner**: Live camera-based QR scanning with html5-qrcode
+- **User Switching**: Switch between multiple demo users instantly
+- **Quick Actions**: Send, Load, Transfer, Bills payment shortcuts
+- **Bottom Navigation**: 5-tab navigation (Home, Inbox, QR, Transactions, Profile)
+- **Balance Display**: Show/hide balance toggle for privacy
+- **Transaction History**: Complete payment history with filtering
+
+### 🌐 Landing Page
+
+- **Professional Portal**: Modern, animated landing experience
+- **Feature Showcase**: Interactive grid displaying all capabilities
+- **Role Selection**: Clear merchant vs. customer path selection
+- **Quick Stats**: Performance metrics (speed, uptime, availability)
+- **Tech Stack Display**: Technologies used with hover effects
+- **Developer Guide**: Collapsible setup instructions
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js 15 (App Router) with React 19
+- **Framework**: Next.js 16 (App Router) with React 19
 - **ORM**: Prisma
 - **Database**: Supabase PostgreSQL
-- **Realtime**: Supabase Realtime
-- **Styling**: Tailwind CSS
+- **Realtime**: Supabase Realtime (WebSocket subscriptions)
+- **Styling**: Tailwind CSS v4
+- **Animations**: Framer Motion
+- **Audio**: Web Speech API + Web Audio API
+- **QR**: qrcode + html5-qrcode
+- **Icons**: Lucide React
+- **Notifications**: React Hot Toast
 - **Deployment**: Vercel
 
 ## 📋 Prerequisites
@@ -149,19 +185,48 @@ Open [http://localhost:3000](http://localhost:3000)
 ```
 ai-payment-soundbox/
 ├── app/
+│   ├── page.tsx                              # Landing page (animated portal)
+│   ├── layout.tsx                            # Root layout with Inter font
+│   ├── globals.css                           # Tailwind v4 + theme config
 │   ├── merchant/[id]/
-│   │   └── page.tsx          # Merchant soundbox (realtime + TTS)
-│   └── pay/[merchantId]/
-│       └── page.tsx           # Customer payment form
+│   │   └── page.tsx                          # Merchant soundbox (desktop UI)
+│   ├── wallet/
+│   │   ├── page.tsx                          # Customer wallet dashboard
+│   │   └── qr/page.tsx                       # QR scanner page
+│   ├── pay/[merchantId]/
+│   │   └── page.tsx                          # Payment form (legacy)
+│   ├── inbox/page.tsx                        # Inbox placeholder
+│   ├── transactions/page.tsx                 # Transactions placeholder
+│   ├── profile/page.tsx                      # Profile placeholder
+│   └── api/
+│       └── merchants/list/route.ts           # GET all merchants API
+├── components/
+│   ├── merchant/
+│   │   ├── MerchantSwitcher.tsx              # Merchant dropdown selector
+│   │   ├── QuickStatsCards.tsx               # Revenue/transaction stats
+│   │   ├── QRCodeSection.tsx                 # QR display with actions
+│   │   ├── TransactionList.tsx               # Animated transaction list
+│   │   └── AudioSettingsDrawer.tsx           # Voice/sound settings panel
+│   └── wallet/
+│       ├── UserSwitcher.tsx                  # User profile switcher
+│       └── BottomNavigation.tsx              # Mobile bottom nav
 ├── lib/
-│   ├── prisma.ts              # Prisma client (server-side)
-│   └── supabase.ts            # Supabase client (client-side)
+│   ├── prisma.ts                             # Prisma client (server-side)
+│   ├── supabase.ts                           # Supabase client (client-side)
+│   ├── qrcode.ts                             # QR generation utilities
+│   ├── sounds.ts                             # Sound effect generators
+│   ├── voice-presets.ts                      # TTS presets & templates
+│   ├── wallet-users.ts                       # Demo user data
+│   └── merchant-utils.ts                     # Stats & formatting utilities
 ├── prisma/
-│   ├── schema.prisma          # Database schema
-│   └── seed.ts                # Seed script
-├── .env.local                 # Environment variables (DO NOT COMMIT)
-├── supabase-setup.md          # SQL commands for Supabase
-└── README.md
+│   ├── schema.prisma                         # Database schema
+│   ├── seed.ts                               # Seed script
+│   └── migrations/                           # Migration history
+├── public/                                   # Static assets
+├── .env.local                                # Environment variables (DO NOT COMMIT)
+├── supabase-setup.md                         # SQL commands for Supabase
+├── prompts.md                                # Development prompt history
+└── README.md                                 # This file
 ```
 
 ## 🏗️ Architecture
@@ -258,19 +323,59 @@ ai-payment-soundbox/
 
 See `prompts.md` for the full development prompt history and architectural decisions.
 
+## 🎯 Pages & Routes
+
+### Public Pages
+
+- `/` - Landing page with feature showcase and role selection
+
+### Merchant Routes (Desktop)
+
+- `/merchant/[id]` - Merchant soundbox dashboard
+- `/api/merchants/list` - API endpoint for merchant list
+
+### Customer Routes (Mobile)
+
+- `/wallet` - Wallet dashboard with balance and actions
+- `/wallet/qr` - QR code scanner for payments
+- `/pay/[merchantId]` - Direct payment form (legacy)
+- `/inbox` - Inbox (placeholder)
+- `/transactions` - Transaction history (placeholder)
+- `/profile` - User profile (placeholder)
+
 ## 🎯 Roadmap
 
-### Future Enhancements
+### ✅ Completed Features
+
+- [x] Instant real-time payment notifications
+- [x] Text-to-speech with multi-language support
+- [x] Voice customization (6 presets + custom)
+- [x] Sound effects (3 types)
+- [x] QR code generation and scanning
+- [x] Multi-merchant switching
+- [x] Live analytics dashboard
+- [x] Customer wallet interface
+- [x] User switching in wallet
+- [x] Professional desktop merchant UI
+- [x] Mobile-optimized wallet UI
+- [x] Animated landing page
+- [x] Transaction history with animations
+
+### 🚀 Future Enhancements
 
 - [ ] Merchant authentication (Supabase Auth)
-- [ ] Transaction history with pagination
-- [ ] TTS voice customization (voice, rate, pitch)
-- [ ] Volume control
-- [ ] Multiple payment statuses (PENDING, FAILED)
-- [ ] Real payment gateway integration
-- [ ] Mobile-responsive design improvements
-- [ ] Analytics dashboard
-- [ ] Export transaction reports
+- [ ] Transaction filtering and search
+- [ ] Multiple payment statuses (PENDING, FAILED, REFUNDED)
+- [ ] Real payment gateway integration (Stripe, PayMongo)
+- [ ] Email/SMS notifications
+- [ ] Export transaction reports (CSV, PDF)
+- [ ] Webhook support for integrations
+- [ ] Dark mode support
+- [ ] Multi-currency support
+- [ ] Advanced analytics (charts, trends)
+- [ ] Merchant settings persistence
+- [ ] Customer transaction receipts
+- [ ] Push notifications
 
 ## 📄 License
 
