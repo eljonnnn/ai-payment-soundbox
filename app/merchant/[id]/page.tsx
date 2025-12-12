@@ -396,7 +396,19 @@ export default function MerchantSoundbox() {
         <div className="fixed top-4 right-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3 shadow-lg z-50 flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-sm text-yellow-800 font-medium">
-            Loading voice system...
+            Loading voice system... ({availableVoices.length} voices found)
+          </p>
+        </div>
+      )}
+
+      {/* Voice Debug Info */}
+      {voicesLoaded && (
+        <div className="fixed top-4 right-4 bg-green-50 border border-green-200 rounded-lg p-3 shadow-lg z-50">
+          <p className="text-xs text-green-800 font-medium">
+            ✓ {availableVoices.length} voices loaded
+          </p>
+          <p className="text-xs text-green-600">
+            Selected: {selectedVoice?.name || "None"}
           </p>
         </div>
       )}
