@@ -61,16 +61,41 @@ export default function MerchantSoundbox() {
     if (typeof window === "undefined") return;
 
     console.log("[Manual Voice Load] User triggered voice loading");
-    // Force voices to load by speaking empty text
-    const utterance = new SpeechSynthesisUtterance(" ");
-    utterance.volume = 0;
+
+    // Force voices to load by speaking empty text with actual audio
+    const utterance = new SpeechSynthesisUtterance(".");
+    utterance.volume = 0.01; // Very quiet but not silent
+    utterance.rate = 10; // Very fast
+
+    utterance.onend = () => {
+      console.log("[Manual Voice Load] Utterance ended, checking voices...");
+      const voices = window.speechSynthesis.getVoices();
+      console.log("[Manual Voice Load] Voices after speak:", voices.length);
+
+      if (voices.length > 0) {
+        setAvailableVoices(voices);
+        const defaultVoice =
+          voices.find(
+            (v) => v.name === "Google US English" && v.lang === "en-US"
+          ) ||
+          voices.find((v) => v.name.includes("Google") && v.lang === "en-US") ||
+          voices.find((v) => v.lang === "en-US") ||
+          voices.find((v) => v.lang.startsWith("en")) ||
+          voices[0];
+        console.log("[Manual Voice Load] Selected voice:", defaultVoice?.name);
+        setSelectedVoice(defaultVoice);
+        setVoicesLoaded(true);
+        setManualVoiceLoad(true);
+      }
+    };
+
     window.speechSynthesis.speak(utterance);
 
-    // Wait a bit then get voices
+    // Also try polling as fallback
     setTimeout(() => {
       const voices = window.speechSynthesis.getVoices();
-      console.log("[Manual Voice Load] Voices after trigger:", voices.length);
-      if (voices.length > 0) {
+      console.log("[Manual Voice Load] Voices after timeout:", voices.length);
+      if (voices.length > 0 && !manualVoiceLoad) {
         setAvailableVoices(voices);
         const defaultVoice =
           voices.find(
@@ -84,8 +109,8 @@ export default function MerchantSoundbox() {
         setVoicesLoaded(true);
         setManualVoiceLoad(true);
       }
-    }, 500);
-  }, []);
+    }, 1000); // Increased from 500ms
+  }, [manualVoiceLoad]);
 
   // Auto-hide voice debug banner after 3 seconds if voices loaded successfully
   useEffect(() => {
@@ -551,7 +576,10 @@ export default function MerchantSoundbox() {
                 {/* Quick Info */}
                 <div className="mt-12 pt-8 border-t border-gray-200">
                   <button
-                    onClick={() => setShowSettingsDrawer(true)}
+                    onClick={() => {
+                      triggerVoiceLoad();
+                      setShowSettingsDrawer(true);
+                    }}
                     className="text-blue-600 hover:text-blue-700 font-medium text-sm"
                   >
                     ⚙️ Configure Audio Settings First
