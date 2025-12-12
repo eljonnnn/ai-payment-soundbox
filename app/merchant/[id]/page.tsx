@@ -60,17 +60,59 @@ export default function MerchantSoundbox() {
   const triggerVoiceLoad = useCallback(() => {
     if (typeof window === "undefined") return;
 
-    console.log("[Manual Voice Load] User triggered voice loading");
+    console.log("[Manual Voice Load] ===== DIAGNOSTIC START =====");
+    console.log("[Manual Voice Load] Browser:", navigator.userAgent);
+    console.log("[Manual Voice Load] Platform:", navigator.platform);
+    console.log(
+      "[Manual Voice Load] Speech Synthesis API exists:",
+      !!window.speechSynthesis
+    );
 
-    // Force voices to load by speaking empty text with actual audio
-    const utterance = new SpeechSynthesisUtterance(".");
-    utterance.volume = 0.01; // Very quiet but not silent
-    utterance.rate = 10; // Very fast
+    if (!window.speechSynthesis) {
+      console.error("[Manual Voice Load] ❌ Speech Synthesis NOT supported!");
+      alert("Text-to-speech is not supported in this browser.");
+      return;
+    }
+
+    // Check voices immediately
+    const immediateVoices = window.speechSynthesis.getVoices();
+    console.log(
+      "[Manual Voice Load] Immediate getVoices() call returned:",
+      immediateVoices.length,
+      "voices"
+    );
+    if (immediateVoices.length > 0) {
+      console.log(
+        "[Manual Voice Load] Voice names:",
+        immediateVoices.map((v) => v.name)
+      );
+    }
+
+    // Force voices to load by speaking
+    const utterance = new SpeechSynthesisUtterance("test");
+    utterance.volume = 0.01;
+    utterance.rate = 10;
+
+    utterance.onstart = () => {
+      console.log("[Manual Voice Load] ✓ Utterance started speaking");
+    };
 
     utterance.onend = () => {
-      console.log("[Manual Voice Load] Utterance ended, checking voices...");
+      console.log("[Manual Voice Load] ✓ Utterance ended");
       const voices = window.speechSynthesis.getVoices();
       console.log("[Manual Voice Load] Voices after speak:", voices.length);
+
+      if (voices.length === 0) {
+        console.error("[Manual Voice Load] ❌ STILL 0 VOICES AFTER SPEAKING!");
+        console.error(
+          "[Manual Voice Load] This indicates the browser/OS has no TTS voices installed"
+        );
+      } else {
+        console.log(
+          "[Manual Voice Load] ✓ SUCCESS! Found voices:",
+          voices.map((v) => `${v.name} (${v.lang})`)
+        );
+      }
 
       if (voices.length > 0) {
         setAvailableVoices(voices);
@@ -89,12 +131,25 @@ export default function MerchantSoundbox() {
       }
     };
 
+    utterance.onerror = (event) => {
+      console.error(
+        "[Manual Voice Load] ❌ Utterance ERROR:",
+        event.error,
+        event
+      );
+    };
+
+    console.log("[Manual Voice Load] Calling speechSynthesis.speak()...");
     window.speechSynthesis.speak(utterance);
 
-    // Also try polling as fallback
+    // Fallback check
     setTimeout(() => {
       const voices = window.speechSynthesis.getVoices();
-      console.log("[Manual Voice Load] Voices after timeout:", voices.length);
+      console.log(
+        "[Manual Voice Load] Fallback check after 1s:",
+        voices.length,
+        "voices"
+      );
       if (voices.length > 0 && !manualVoiceLoad) {
         setAvailableVoices(voices);
         const defaultVoice =
@@ -109,7 +164,8 @@ export default function MerchantSoundbox() {
         setVoicesLoaded(true);
         setManualVoiceLoad(true);
       }
-    }, 1000); // Increased from 500ms
+      console.log("[Manual Voice Load] ===== DIAGNOSTIC END =====");
+    }, 1000);
   }, [manualVoiceLoad]);
 
   // Auto-hide voice debug banner after 3 seconds if voices loaded successfully
