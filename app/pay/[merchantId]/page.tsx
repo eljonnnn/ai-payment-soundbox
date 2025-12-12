@@ -1,41 +1,84 @@
-import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Store, CheckCircle2, Lock } from "lucide-react";
+import { getStoredUser } from "@/lib/wallet-users";
 
-async function payMerchant(formData: FormData) {
-  "use server";
+export default function PayPage() {
+  const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const merchantId = params.merchantId as string;
+  const success = searchParams.get("success");
 
-  const merchantId = formData.get("merchantId") as string;
-  const amount = parseFloat(formData.get("amount") as string);
-  const customerName = formData.get("customerName") as string;
+  const [merchant, setMerchant] = useState<{ id: string; name: string } | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [customerName, setCustomerName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  await prisma.transaction.create({
-    data: {
-      merchantId,
-      amount,
-      customerName,
-      status: "COMPLETED",
-    },
-  });
+  useEffect(() => {
+    // Load merchant data
+    fetch(`/api/merchants/list`)
+      .then((res) => res.json())
+      .then((data) => {
+        const foundMerchant = data.merchants?.find(
+          (m: any) => m.id === merchantId
+        );
+        setMerchant(foundMerchant || null);
+        setLoading(false);
+      })
+      .catch(() => {
+        setMerchant(null);
+        setLoading(false);
+      });
 
-  redirect(`/pay/${merchantId}?success=true`);
-}
+    // Pre-fill customer name from stored user
+    const storedUser = getStoredUser();
+    if (storedUser) {
+      setCustomerName(storedUser.name);
+    }
+  }, [merchantId]);
 
-export default async function PayPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ merchantId: string }>;
-  searchParams: Promise<{ success?: string }>;
-}) {
-  const { merchantId } = await params;
-  const { success } = await searchParams;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
 
-  const merchant = await prisma.merchant.findUnique({
-    where: { id: merchantId },
-  });
+    try {
+      const response = await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          merchantId,
+          amount: parseFloat(amount),
+          customerName,
+        }),
+      });
 
+      if (response.ok) {
+        router.push(`/pay/${merchantId}?success=true`);
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   if (!merchant) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -117,9 +160,7 @@ export default async function PayPage({
             Enter Payment Details
           </h3>
 
-          <form action={payMerchant} className="space-y-5">
-            <input type="hidden" name="merchantId" value={merchantId} />
-
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
                 htmlFor="customerName"
@@ -131,9 +172,12 @@ export default async function PayPage({
                 type="text"
                 id="customerName"
                 name="customerName"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
                 placeholder="Juan Dela Cruz"
                 required
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900 placeholder-gray-400"
+                readOnly
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 outline-none text-gray-900 placeholder-gray-400 cursor-not-allowed"
               />
             </div>
 
@@ -152,6 +196,8 @@ export default async function PayPage({
                   type="number"
                   id="amount"
                   name="amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                   placeholder="100.00"
                   step="0.01"
                   min="0.01"
@@ -163,9 +209,10 @@ export default async function PayPage({
 
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl transition duration-200 shadow-lg hover:shadow-xl"
+              disabled={submitting}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-4 px-4 rounded-xl transition duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
             >
-              Pay Now
+              {submitting ? "Processing..." : "Pay Now"}
             </button>
           </form>
 

@@ -18,15 +18,33 @@ export default function QRScannerPage() {
         .stop()
         .then(() => {
           scannerRef.current?.clear();
+          setIsScanning(false);
         })
-        .catch(console.error);
+        .catch((err) => {
+          // Ignore "Scanner not running" errors during cleanup
+          console.log("Scanner stop:", err);
+          setIsScanning(false);
+        });
     }
   }, [isScanning]);
 
   const onScanSuccess = useCallback(
     (decodedText: string) => {
       console.log("QR Code scanned:", decodedText);
-      stopScanner();
+
+      // Set scanning to false immediately to prevent double processing
+      setIsScanning(false);
+
+      // Stop scanner before navigation
+      if (scannerRef.current) {
+        scannerRef.current
+          .stop()
+          .then(() => {
+            scannerRef.current?.clear();
+            scannerRef.current = null;
+          })
+          .catch((err) => console.log("Stop error:", err));
+      }
 
       // Parse merchant ID from QR code
       let parsedId = decodedText;
@@ -36,9 +54,12 @@ export default function QRScannerPage() {
         if (match) parsedId = match[1];
       }
 
-      router.push(`/pay/${parsedId}`);
+      // Navigate after a brief delay to allow scanner cleanup
+      setTimeout(() => {
+        router.push(`/pay/${parsedId}`);
+      }, 100);
     },
-    [router, stopScanner]
+    [router]
   );
 
   const onScanFailure = useCallback(() => {
@@ -48,6 +69,15 @@ export default function QRScannerPage() {
   const startScanner = useCallback(async () => {
     try {
       setError(null);
+
+      // Ensure the element exists
+      const element = document.getElementById("qr-reader");
+      if (!element) {
+        console.error("QR reader element not found");
+        setError("Scanner initialization failed. Please refresh.");
+        return;
+      }
+
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
 
@@ -64,16 +94,24 @@ export default function QRScannerPage() {
       setIsScanning(true);
     } catch (err) {
       console.error("Camera error:", err);
-      setError("Unable to access camera. Please check permissions.");
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(
+        errorMessage.includes("NotAllowedError") ||
+          errorMessage.includes("Permission")
+          ? "Camera access denied. Please allow camera permissions."
+          : "Unable to access camera. Please check permissions."
+      );
     }
   }, [onScanSuccess, onScanFailure]);
 
   useEffect(() => {
-    // Scanner initialization on mount is intentional
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    startScanner();
+    // Wait for DOM to be ready before starting scanner
+    const timer = setTimeout(() => {
+      startScanner();
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       stopScanner();
     };
   }, [startScanner, stopScanner]);
