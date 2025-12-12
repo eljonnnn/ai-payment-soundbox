@@ -59,22 +59,27 @@ export default function MerchantSoundbox() {
     if (typeof window === "undefined") return;
 
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 20; // Increased from 10
     let pollInterval: NodeJS.Timeout | null = null;
 
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
+      console.log(`[Voice Loading] Attempt ${attempts + 1}: Found ${voices.length} voices`);
 
       if (voices.length > 0) {
         console.log("✅ Voices loaded:", voices.length);
+        console.log("Available voices:", voices.map(v => `${v.name} (${v.lang})`));
         setAvailableVoices(voices);
         // Set default to Google US English voice
         const defaultVoice =
           voices.find(
             (v) => v.name === "Google US English" && v.lang === "en-US"
           ) ||
+          voices.find((v) => v.name.includes("Google") && v.lang === "en-US") ||
+          voices.find((v) => v.lang === "en-US") ||
           voices.find((v) => v.lang.startsWith("en")) ||
           voices[0];
+        console.log("Selected default voice:", defaultVoice?.name, defaultVoice?.lang);
         setSelectedVoice(defaultVoice);
         setVoicesLoaded(true);
         return true;
@@ -83,10 +88,15 @@ export default function MerchantSoundbox() {
     };
 
     // Try loading immediately (might be cached)
-    if (loadVoices()) return;
+    console.log("[Voice Loading] Initial load attempt...");
+    if (loadVoices()) {
+      console.log("[Voice Loading] Voices loaded immediately");
+      return;
+    }
 
     // Set up event listener for async voice loading
     const handleVoicesChanged = () => {
+      console.log("[Voice Loading] voiceschanged event fired");
       if (loadVoices() && pollInterval) {
         clearInterval(pollInterval);
         pollInterval = null;
@@ -99,6 +109,7 @@ export default function MerchantSoundbox() {
     );
 
     // Fallback polling for browsers that don't fire the event reliably
+    console.log("[Voice Loading] Starting polling fallback...");
     pollInterval = setInterval(() => {
       attempts++;
       if (loadVoices() || attempts >= maxAttempts) {
@@ -107,17 +118,20 @@ export default function MerchantSoundbox() {
           pollInterval = null;
         }
         if (attempts >= maxAttempts && !voicesLoaded) {
-          console.warn(
-            "⚠️ Voices failed to load after",
+          console.error(
+            "❌ Voices failed to load after",
             maxAttempts,
             "attempts"
           );
+          // Still set voices loaded to true to allow the app to function
+          setVoicesLoaded(true);
         }
       }
-    }, 100);
+    }, 200); // Increased from 100ms to 200ms
 
     // Cleanup
     return () => {
+      console.log("[Voice Loading] Cleanup");
       window.speechSynthesis.removeEventListener(
         "voiceschanged",
         handleVoicesChanged
