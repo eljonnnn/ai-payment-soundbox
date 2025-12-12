@@ -107,7 +107,7 @@ export default function BottomNavigation() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
-      <div className="max-w-md mx-auto flex items-center justify-around h-16">
+      <div className="max-w-md mx-auto grid grid-cols-5 items-center h-16 relative">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
 
@@ -116,7 +116,7 @@ export default function BottomNavigation() {
               <Link
                 key={item.id}
                 href={item.href}
-                className="flex flex-col items-center justify-center -mt-8"
+                className="flex flex-col items-center justify-center relative -top-6"
               >
                 <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition">
                   {item.icon(isActive)}
@@ -132,7 +132,7 @@ export default function BottomNavigation() {
             <Link
               key={item.id}
               href={item.href}
-              className="flex flex-col items-center justify-center gap-1 py-2 px-4 min-w-[60px]"
+              className="flex flex-col items-center justify-center gap-1"
             >
               {item.icon(isActive)}
               <span
