@@ -186,6 +186,14 @@ export default function MerchantSoundbox() {
     const maxAttempts = 20; // Increased from 10
     let pollInterval: NodeJS.Timeout | null = null;
 
+    // Auto-dismiss loading after 5 seconds to prevent stuck state
+    const autoTimeout = setTimeout(() => {
+      console.log(
+        "[Voice Loading] ⏱️ Auto-timeout: Setting voicesLoaded=true after 5s"
+      );
+      setVoicesLoaded(true);
+    }, 5000);
+
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       console.log(
@@ -198,6 +206,7 @@ export default function MerchantSoundbox() {
           "Available voices:",
           voices.map((v) => `${v.name} (${v.lang})`)
         );
+        clearTimeout(autoTimeout); // Clear auto-dismiss if voices found
         setAvailableVoices(voices);
         // Set default to Google US English voice
         const defaultVoice =
@@ -274,6 +283,7 @@ export default function MerchantSoundbox() {
     // Cleanup
     return () => {
       console.log("[Voice Loading] Cleanup");
+      clearTimeout(autoTimeout); // Clear timeout on cleanup
       window.speechSynthesis.removeEventListener(
         "voiceschanged",
         handleVoicesChanged
