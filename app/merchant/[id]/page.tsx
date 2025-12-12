@@ -54,6 +54,38 @@ export default function MerchantSoundbox() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
   const [showVoiceDebug, setShowVoiceDebug] = useState(true);
+  const [manualVoiceLoad, setManualVoiceLoad] = useState(false);
+
+  // Manual voice loading function to be called on user interaction
+  const triggerVoiceLoad = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    console.log("[Manual Voice Load] User triggered voice loading");
+    // Force voices to load by speaking empty text
+    const utterance = new SpeechSynthesisUtterance(" ");
+    utterance.volume = 0;
+    window.speechSynthesis.speak(utterance);
+
+    // Wait a bit then get voices
+    setTimeout(() => {
+      const voices = window.speechSynthesis.getVoices();
+      console.log("[Manual Voice Load] Voices after trigger:", voices.length);
+      if (voices.length > 0) {
+        setAvailableVoices(voices);
+        const defaultVoice =
+          voices.find(
+            (v) => v.name === "Google US English" && v.lang === "en-US"
+          ) ||
+          voices.find((v) => v.name.includes("Google") && v.lang === "en-US") ||
+          voices.find((v) => v.lang === "en-US") ||
+          voices.find((v) => v.lang.startsWith("en")) ||
+          voices[0];
+        setSelectedVoice(defaultVoice);
+        setVoicesLoaded(true);
+        setManualVoiceLoad(true);
+      }
+    }, 500);
+  }, []);
 
   // Auto-hide voice debug banner after 3 seconds if voices loaded successfully
   useEffect(() => {
@@ -470,7 +502,10 @@ export default function MerchantSoundbox() {
                   onMerchantChange={handleMerchantChange}
                 />
                 <button
-                  onClick={() => setShowSettingsDrawer(true)}
+                  onClick={() => {
+                    triggerVoiceLoad();
+                    setShowSettingsDrawer(true);
+                  }}
                   className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors"
                   title="Audio Settings"
                 >
@@ -504,7 +539,10 @@ export default function MerchantSoundbox() {
                   when customers complete payments.
                 </p>
                 <button
-                  onClick={startListening}
+                  onClick={() => {
+                    triggerVoiceLoad();
+                    startListening();
+                  }}
                   className="bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold px-12 py-4 rounded-xl text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   🎧 Activate Soundbox
