@@ -53,6 +53,17 @@ export default function MerchantSoundbox() {
   // QR Code
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
+  const [showVoiceDebug, setShowVoiceDebug] = useState(true);
+
+  // Auto-hide voice debug banner after 3 seconds if voices loaded successfully
+  useEffect(() => {
+    if (voicesLoaded && availableVoices.length > 0) {
+      const timer = setTimeout(() => {
+        setShowVoiceDebug(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [voicesLoaded, availableVoices.length]);
 
   // Load available voices with retry logic
   useEffect(() => {
@@ -119,6 +130,12 @@ export default function MerchantSoundbox() {
 
     // Fallback polling for browsers that don't fire the event reliably
     console.log("[Voice Loading] Starting polling fallback...");
+
+    // Trigger speech synthesis to force voice loading (required in some browsers)
+    const utterance = new SpeechSynthesisUtterance("");
+    window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.cancel();
+
     pollInterval = setInterval(() => {
       attempts++;
       if (loadVoices() || attempts >= maxAttempts) {
@@ -126,14 +143,17 @@ export default function MerchantSoundbox() {
           clearInterval(pollInterval);
           pollInterval = null;
         }
-        if (attempts >= maxAttempts && !voicesLoaded) {
+        if (attempts >= maxAttempts) {
           console.error(
             "❌ Voices failed to load after",
             maxAttempts,
-            "attempts"
+            "attempts. Available voices:",
+            window.speechSynthesis.getVoices().length
           );
-          // Still set voices loaded to true to allow the app to function
-          setVoicesLoaded(true);
+          // Don't set voicesLoaded if no voices are available
+          if (availableVoices.length === 0) {
+            setAvailableVoices([]);
+          }
         }
       }
     }, 200); // Increased from 100ms to 200ms
@@ -401,8 +421,8 @@ export default function MerchantSoundbox() {
         </div>
       )}
 
-      {/* Voice Debug Info */}
-      {voicesLoaded && (
+      {/* Voice Debug Info - Only show if voices actually loaded and banner is visible */}
+      {voicesLoaded && availableVoices.length > 0 && showVoiceDebug && (
         <div className="fixed top-4 right-4 bg-green-50 border border-green-200 rounded-lg p-3 shadow-lg z-50">
           <p className="text-xs text-green-800 font-medium">
             ✓ {availableVoices.length} voices loaded
@@ -410,6 +430,16 @@ export default function MerchantSoundbox() {
           <p className="text-xs text-green-600">
             Selected: {selectedVoice?.name || "None"}
           </p>
+        </div>
+      )}
+
+      {/* Voice Loading Failed Warning - Show if loaded but no voices */}
+      {voicesLoaded && availableVoices.length === 0 && (
+        <div className="fixed top-4 right-4 bg-red-50 border border-red-200 rounded-lg p-3 shadow-lg z-50">
+          <p className="text-xs text-red-800 font-medium">
+            ⚠️ Voice system unavailable
+          </p>
+          <p className="text-xs text-red-600">Text-to-speech may not work</p>
         </div>
       )}
 
